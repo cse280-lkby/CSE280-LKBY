@@ -1,3 +1,3 @@
 ## Progress Reports
 
-Coming soon!
+This directory contains our progress reports.
