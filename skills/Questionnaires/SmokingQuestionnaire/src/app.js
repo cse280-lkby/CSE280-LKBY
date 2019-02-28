@@ -9,7 +9,7 @@ const { Alexa } = require('jovo-platform-alexa');
 const { GoogleAssistant } = require('jovo-platform-googleassistant');
 const { JovoDebugger } = require('jovo-plugin-debugger');
 const { FileDb } = require('jovo-db-filedb');
-const SECTIONS = require('./questionnaire/sections');
+const { CONFIG, SECTIONS } = require('./questionnaire');
 
 const app = new App();
 
@@ -20,12 +20,9 @@ app.use(
     new FileDb()
 );
 
-
 // ------------------------------------------------------------------
 // APP LOGIC
 // ------------------------------------------------------------------
-
-
 
 app.setHandler({
     LAUNCH() {
@@ -34,10 +31,7 @@ app.setHandler({
         
         // Launch questionnaire from beginning
         this.followUpState('TakingQuestionnaire')
-            .ask('Welcome to the Smoking Questionnaire. Before we start, I need'
-            + ' permission to collect and save information from our conversation.'
-            + ' You can view the full privacy policy on our skill information page.'
-            + ' Do you consent to have your answers saved for research purposes?');
+            .ask(CONFIG.intro);
     },
 
     TakingQuestionnaire: {
@@ -65,11 +59,27 @@ app.setHandler({
             if (questionId > 0) {
                 const lastQuestion = questions[questionId-1];
                 // Get the input slot with the last question's type
-                const lastAnswer = this.$inputs[lastQuestion.type].value;
-                // TODO: run callback so we can verify/reprompt or jump to different state
-                // TODO: configure if answers should be saved
-                this.$user.$data[lastQuestion.name] = lastAnswer;
+                const type = lastQuestion.type;
+                const lastAnswer = this.$inputs[type.name].value;
+                // Validate answer, if repromptStr is set, slot is invalid
+                const repromptStr = type.validate && type.validate(lastAnswer);
+                if (typeof repromptStr === 'string') {
+                    this.$alexaSkill.$dialog.elicitSlot(type.name, repromptStr);
+                    return;
+                }
+
+                // Save the answer since it is valid.
                 console.log(`Response to last question '${lastQuestion.name}' was '${lastAnswer}'.`);
+                this.$user.$data[section.name + '-' + lastQuestion.name] = lastAnswer;
+
+                // Call the questions onResponse handler
+                const redirectTo = lastQuestion.onResponse && lastQuestion.onResponse(lastAnswer);
+
+                // If the response handler returned a section name, redirect to it
+                if (typeof redirectTo === 'string') {
+                    this.$session.$data.questionnaireState = { sectionId: redirectTo, questionId: 0 };
+                    return this.toStateIntent("TakingQuestionnaire", "SurveyQuestionIntent");
+                }
             }
 
             // If we are out of questions in this section, then the section is complete.
@@ -90,7 +100,7 @@ app.setHandler({
 
             const question = questions[questionId];
             // Elicit value of appropritate slot based on question type
-            this.$alexaSkill.$dialog.elicitSlot(question.type, question.prompt, question.reprompt);
+            this.$alexaSkill.$dialog.elicitSlot(question.type.name, question.prompt, question.reprompt);
             // Move state to the next question
             this.$session.$data.questionnaireState= { sectionId, questionId: questionId + 1 };
         }
