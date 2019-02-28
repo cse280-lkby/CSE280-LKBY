@@ -42,10 +42,27 @@ app.setHandler({
             if (!this.$session.$data.questionnaireState) {
                 console.log("New questionnaire session created.");
                 this.$session.$data.questionnaireState = { sectionId: SECTIONS.__main__, questionId: 0 };
+
+                // back-up old questionnaire responses (if they exist)
+                if (this.$user.$data.questionnaire) {
+                    if (!this.$user.$data.previousResponses) {
+                        this.$user.$data.previousResponses = [];
+                    }
+                    this.$user.$data.previousResponses.push(this.$user.$data.questionnaire);
+                }
+
+                // create new questionnaire state in database
+                this.$user.$data.questionnaire = {
+                    __start_time__: (new Date()).toISOString()
+                };
             }
 
             const { sectionId, questionId } = this.$session.$data.questionnaireState;
             const section = SECTIONS[sectionId];
+
+            if (!this.$user.$data.questionnaire[sectionId]) {
+                this.$user.$data.questionnaire[sectionId] = {};
+            }
 
             if (!section) {
                 console.error('Failed to find section with id', sectionId);
@@ -70,7 +87,7 @@ app.setHandler({
 
                 // Save the answer since it is valid.
                 console.log(`Response to last question '${lastQuestion.name}' was '${lastAnswer}'.`);
-                this.$user.$data[section.name + '-' + lastQuestion.name] = lastAnswer;
+                this.$user.$data.questionnaire[section.name][lastQuestion.name] = lastAnswer;
 
                 // Call the questions onResponse handler
                 const redirectTo = lastQuestion.onResponse && lastQuestion.onResponse(lastAnswer);
@@ -88,7 +105,8 @@ app.setHandler({
                 const {next} = section;
                 if (!next) {
                     // If there is not a 'next' section, questionnaire is over.
-                    this.tell('That\'s all we have for now. Thank you for taking the questionnaire!');
+                    this.tell(CONFIG.completed);
+                    this.$user.$data.questionnaire.__finished__ = true;
                     return;
                 }
 
