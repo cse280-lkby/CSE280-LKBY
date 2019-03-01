@@ -27,7 +27,7 @@ const SECTIONS = {
                 prompt: 'Have you smoked in the last 24 hours?',
                 type: SLOT_TYPES.YES_NO,
                 onResponse(input) {
-                    if(input === 'yes') return 'already_quit';
+                    if(input === 'no') return 'already_quit';
                 }
             },{
                 name: 'cigs_per_day',
@@ -51,17 +51,17 @@ const SECTIONS = {
         questions: [
             {
                 name: 'date_stop_smoking',
-                prompt: "Congratulations on already quitting! When did you stop smoking?",
+                prompt: "Congratulations on quitting! When did you stop smoking?",
                 type: SLOT_TYPES.OPEN_ENDED, // TODO: Change to date
             },{
                 name: 'reason_for_quitting',
                 prompt: 'What methods were successful for you?',
                 type: SLOT_TYPES.OPEN_ENDED
-            },{
+            }/*,{
                 name: 'end', // TODO: Is there a better way to do this?
                 prompt: 'Free to talk to me again if you are struggling or relapse! I\'ll be here waiting to help you!',
                 type: SLOT_TYPES.OPEN_ENDED
-            }
+            }*/
         ],
         next: '' // TODO: End conversation!
     },
@@ -127,7 +127,7 @@ const SECTIONS = {
             // Last time quit smoking
             {
                 name: 'date_stop_smoking_last',
-                prompt: 'When did you stop smoking?',
+                prompt: 'I\'m first going to ask you about the last time you quit smoking. When did you stop smoking?',
                 type: SLOT_TYPES.OPEN_ENDED
             },{
                 name: 'how_long_stopped_last',
@@ -153,7 +153,7 @@ const SECTIONS = {
             // Longest time quit smoking
             {
                 name: 'date_stop_smoking_longest',
-                prompt: 'When did you stop smoking?',
+                prompt: 'Now, I\'ll ask about the longest time you quit smoking. When did you stop smoking?',
                 type: SLOT_TYPES.OPEN_ENDED
             },{
                 name: 'how_long_stopped_longest',
