@@ -94,7 +94,7 @@ function setupChat() {
             remote_media.attr("controls", "");
             peer_media_elements[peer_id] = remote_media;
             $('#media').append(remote_media);
-            attachMediaStream(remote_media[0], event.stream);
+            remote_media[0].srcObject = event.stream;
         }
 
         /* Add our local stream */
@@ -209,7 +209,7 @@ function setupChat() {
 /***********************/
 /** Local media stuff **/
 /***********************/
-function setup_local_media(callback, errorback) {
+function setup_local_media(callback, errorback, permissionGranted) {
     if (local_media_stream != null) {  /* ie, if we've already been initialized */
         if (callback) callback();
         return; 
@@ -217,6 +217,21 @@ function setup_local_media(callback, errorback) {
     /* Ask user for permission to use the computers microphone and/or camera, 
      * attach it to an <audio> or <video> tag if they give us access. */
     console.log("Requesting access to local audio / video inputs");
+
+    if (device.platform === 'Android' && !permissionGranted) {
+      const permissions = cordova.plugins.permissions;
+      permissions.requestPermissions(
+        [
+          permissions.RECORD_AUDIO,
+          permissions.MODIFY_AUDIO_SETTINGS
+        ],
+        status => {
+          alert('Permission callback status: ' + status.hasPermission);
+          setup_local_media(callback, errorback, true);
+        },
+        () => alert('Audio permissions denied or error occurred.'));
+      return;
+    }
 
     navigator.mediaDevices.getUserMedia({"audio":USE_AUDIO, "video":USE_VIDEO})
         .then(stream => {
@@ -229,11 +244,14 @@ function setup_local_media(callback, errorback) {
             $('#media').append(local_media);
             local_media[0].srcObject = stream;
 
+            if (device.platform === 'Android') {
+              alert('Stream is live')
+            }
             if (callback) callback();
         })
         .catch(e => { /* user denied access to a/v */
             console.log("Access denied for audio/video: ", e);
-            alert("You chose not to provide access to the camera/microphone, demo will not work.");
+            alert("You chose not to provide access to the camera/microphone, demo will not work.\n" + e);
             if (errorback) errorback();
         });
 }
