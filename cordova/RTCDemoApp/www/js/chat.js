@@ -93,7 +93,7 @@ function setupChat() {
             }
             remote_media.attr("controls", "");
             peer_media_elements[peer_id] = remote_media;
-            $('body').append(remote_media);
+            $('#media').append(remote_media);
             attachMediaStream(remote_media[0], event.stream);
         }
 
@@ -226,13 +226,13 @@ function setup_local_media(callback, errorback) {
             local_media.attr("autoplay", "autoplay");
             local_media.prop("muted", true); /* always mute ourselves by default */
             local_media.attr("controls", "");
-            $('body').append(local_media);
+            $('#media').append(local_media);
             local_media[0].srcObject = stream;
 
             if (callback) callback();
         })
         .catch(e => { /* user denied access to a/v */
-            console.log("Access denied for audio/video");
+            console.log("Access denied for audio/video: ", e);
             alert("You chose not to provide access to the camera/microphone, demo will not work.");
             if (errorback) errorback();
         });
