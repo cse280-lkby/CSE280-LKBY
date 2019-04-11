@@ -1,0 +1,5 @@
+rootProject.name = 'GroupChatApp'
+
+// include ':app'
+include ':WebRTCModule', ':app'
+project(':WebRTCModule').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-webrtc/android')
