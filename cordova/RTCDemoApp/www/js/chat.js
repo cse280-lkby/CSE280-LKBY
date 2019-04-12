@@ -2,7 +2,7 @@
 const SIGNALING_SERVER = "http://ec2-54-164-202-125.compute-1.amazonaws.com:8080";
 const USE_AUDIO = true;
 const USE_VIDEO = false;
-const DEFAULT_CHANNEL = 'main_support_channel';
+const DEFAULT_CHANNEL = 'some-global-channel-name';
 const MUTE_AUDIO_BY_DEFAULT = false;
 
 /** You should probably use a different stun server doing commercial stuff **/
@@ -17,11 +17,15 @@ const peers = {};                /* keep track of our peer connections, indexed 
 const peer_media_elements = {};  /* keep track of our <video>/<audio> tags, indexed by peer_id */
 
 function setupChat() {
+    alert("Setting up");
     console.log("Connecting to signaling server");
-    signaling_socket = io(SIGNALING_SERVER);
+    signaling_socket = io(SIGNALING_SERVER, {
+        rejectUnauthorized: false,
+        transports: ['websocket']
+    });
 
     signaling_socket.on('connect', function() {
-        console.log("Connected to signaling server");
+        alert("Connected to signaling server");
         setup_local_media(function() {
             /* once the user has given us access to their
              * microphone/camcorder, join the channel and start peering up */
@@ -30,7 +34,7 @@ function setupChat() {
     });
 
     signaling_socket.on('disconnect', function() {
-        console.log("Disconnected from signaling server");
+        alert("Disconnected from signaling server");
         /* Tear down all of our peer connections and remove all the
          * media divs when we disconnect */
         for (peer_id in peer_media_elements) {
@@ -43,6 +47,11 @@ function setupChat() {
         peers = {};
         peer_media_elements = {};
     });
+
+    signaling_socket.on('connect_error', function(error) {
+        alert('Socket error: ' + error);
+    })
+
     function join_chat_channel(channel, userdata) {
         signaling_socket.emit('join', {"channel": channel, "userdata": userdata});
     }
