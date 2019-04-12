@@ -11,6 +11,7 @@
 import React, {Component} from 'react';
 import {Platform, StyleSheet, Text, View} from 'react-native';
 import SocketIOClient from 'socket.io-client';
+import { RTCPeerConnection } from 'react-native-webrtc';
 
 const instructions = Platform.select({
   ios: 'Press Cmd+R to reload,\n' + 'Cmd+D or shake for dev menu',
@@ -22,7 +23,7 @@ const instructions = Platform.select({
 const SIGNALING_SERVER = "http://ec2-54-164-202-125.compute-1.amazonaws.com:8080";
 const USE_AUDIO = true;
 const USE_VIDEO = false;
-const DEFAULT_CHANNEL = 'main_support_channel';
+const DEFAULT_CHANNEL = 'some-global-channel-name';
 const MUTE_AUDIO_BY_DEFAULT = false;
 
 const ICE_SERVERS = [
@@ -49,13 +50,24 @@ export default class App extends Component<Props, State> {
     super(props);
 
     console.warn('Connecting?? :(');
-    this.signaling_socket = SocketIOClient(SIGNALING_SERVER);
+    this.signaling_socket = SocketIOClient(SIGNALING_SERVER, {
+      rejectUnauthorized: false,
+      transports: ['websocket']
+    });
+
     this.signaling_socket.on('connect', () => {
       console.warn("Connected!");
       this.setState(state => ({
         ...state,
         connected: true
       }));
+      
+      // TODO: refactor this temporary code
+      this.signaling_socket.emit('join', {"channel": DEFAULT_CHANNEL, "userdata": {}});
+    });
+    
+    this.signaling_socket.on('connect_error', (err: any) => {
+      console.error("Connect error! " + err);
     });
     
     this.signaling_socket.on('disconnect', () => {
@@ -64,6 +76,18 @@ export default class App extends Component<Props, State> {
         ...state,
         connected: false
       }));
+    });
+
+    this.signaling_socket.on('addPeer', (config: any) => {
+      console.warn("Adding peer: ", config);
+      const {peer_id} = config;
+      if (peer_id in peers) {
+        return;
+      }
+      const peer_connection = new RTCPeerConnection(
+        {iceServers: ICE_SERVERS},
+        {optional: [{DtlsSrtpKeyAgreement: true}]}
+      )
     });
   }
   render() {
