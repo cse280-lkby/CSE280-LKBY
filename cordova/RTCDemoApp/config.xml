@@ -1,16 +1,17 @@
 <?xml version='1.0' encoding='utf-8'?>
+<!-- Removed: id="io.cordova.hellocordova" -->
 <widget
-    id="io.cordova.hellocordova"
+    id="edu.lehigh.cse280.mycollegebuddy"
     version="1.0.0"
     xmlns="http://www.w3.org/ns/widgets"
     xmlns:cdv="http://cordova.apache.org/ns/1.0"
     xmlns:android="http://schemas.android.com/apk/res/android">
-    <name>HelloCordova</name>
+    <name>GroupChatDemo</name>
     <description>
-        A sample Apache Cordova application that responds to the deviceready event.
+        A multi-way peer-to-peer group chat demo app.
     </description>
     <author email="dev@cordova.apache.org" href="http://cordova.io">
-        Apache Cordova Team
+        John Kusner, Dan Yu
     </author>
     <content src="index.html" />
     <plugin name="cordova-plugin-whitelist" spec="1" />
@@ -25,7 +26,6 @@
         <edit-config file="app/src/main/AndroidManifest.xml" mode="merge" target="/manifest/application">
             <application android:usesCleartextTraffic="true" />
         </edit-config>
-        <application android:usesCleartextTraffic="true"></application>
         <allow-intent href="market:*" />
         <allow-intent href="http://ec2-54-164-202-125.compute-1.amazonaws.com:8080" />
         <config-file target="AndroidManifest.xml" parent="/*">
