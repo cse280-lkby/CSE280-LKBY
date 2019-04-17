@@ -10,8 +10,7 @@
 
 import React, {Component} from 'react';
 import {Platform, StyleSheet, Text, View} from 'react-native';
-import SocketIOClient from 'socket.io-client';
-import { RTCPeerConnection } from 'react-native-webrtc';
+import Chat from './Chat'
 
 const instructions = Platform.select({
   ios: 'Press Cmd+R to reload,\n' + 'Cmd+D or shake for dev menu',
@@ -20,83 +19,20 @@ const instructions = Platform.select({
     'Shake or press menu button for dev menu',
 });
 
-const SIGNALING_SERVER = "http://ec2-54-164-202-125.compute-1.amazonaws.com:8080";
-const USE_AUDIO = true;
-const USE_VIDEO = false;
-const DEFAULT_CHANNEL = 'some-global-channel-name';
-const MUTE_AUDIO_BY_DEFAULT = false;
-
-const ICE_SERVERS = [
-    {urls:"stun:stun.l.google.com:19302"}
-];
-
-let signaling_socket = null;   /* our socket.io connection to our webserver */
-let local_media_stream = null; /* our own microphone / webcam */
-const peers = {};                /* keep track of our peer connections, indexed by peer_id (aka socket.io id) */
-const peer_media_elements = {};  /* keep track of our <video>/<audio> tags, indexed by peer_id */
-
-
 
 interface Props {}
-interface State {
-  connected: boolean;
-}
+interface State {}
 export default class App extends Component<Props, State> {
-  signaling_socket: SocketIOClient.Socket;
   state = {
-    connected: false,
   };
-  constructor(props: Props) {
-    super(props);
-
-    console.warn('Connecting?? :(');
-    this.signaling_socket = SocketIOClient(SIGNALING_SERVER, {
-      rejectUnauthorized: false,
-      transports: ['websocket']
-    });
-
-    this.signaling_socket.on('connect', () => {
-      console.warn("Connected!");
-      this.setState(state => ({
-        ...state,
-        connected: true
-      }));
-      
-      // TODO: refactor this temporary code
-      this.signaling_socket.emit('join', {"channel": DEFAULT_CHANNEL, "userdata": {}});
-    });
-    
-    this.signaling_socket.on('connect_error', (err: any) => {
-      console.error("Connect error! " + err);
-    });
-    
-    this.signaling_socket.on('disconnect', () => {
-      console.warn("Disconnected!");
-      this.setState(state => ({
-        ...state,
-        connected: false
-      }));
-    });
-
-    this.signaling_socket.on('addPeer', (config: any) => {
-      console.warn("Adding peer: ", config);
-      const {peer_id} = config;
-      if (peer_id in peers) {
-        return;
-      }
-      const peer_connection = new RTCPeerConnection(
-        {iceServers: ICE_SERVERS},
-        {optional: [{DtlsSrtpKeyAgreement: true}]}
-      )
-    });
-  }
   render() {
     return (
-      <View style={styles.container}>
-        <Text style={styles.welcome}>Chat app!</Text>
-        <Text style={styles.instructions}>Socket connected?: {this.state.connected ? 'yes' : 'no'}</Text>
-        <Text style={styles.instructions}>{instructions}</Text>
-      </View>
+      <Chat />
+      // <View style={styles.container}>
+      //   <Text style={styles.welcome}>Chat app!</Text>
+      //   <Text style={styles.instructions}>Socket connected?: {this.state.connected ? 'yes' : 'no'}</Text>
+      //   <Text style={styles.instructions}>{instructions}</Text>
+      // </View>
     );
   }
 }
