@@ -89,8 +89,8 @@ export default class Chat extends Component<Props, State> {
         this.peerConnections[peer_id] = peer_connection;
 
         peer_connection.onicecandidate = (event: any) => {
-            console.warn('peer_connection got ice candidate, relaying: ', event);
             if (event.candidate) {
+                console.warn('pc.onicecandidate, relaying: ', JSON.stringify(event.candidate));
                 this.signaling_socket.emit('relayICECandidate', {
                     'peer_id': peer_id, 
                     'ice_candidate': {
@@ -101,7 +101,7 @@ export default class Chat extends Component<Props, State> {
             }
         }
         peer_connection.onaddstream = (event: any) => {
-            console.warn("onAddStream, peer_id:", peer_id, "event:", event);
+            console.warn("pc.onaddstream, peer_id:", peer_id, "event:", event);
             const {stream} = event;
             this.peerStreams[peer_id] = stream;
             this._updateRenderedStreams();
@@ -136,9 +136,9 @@ export default class Chat extends Component<Props, State> {
         }
     }
     _onIceCandidate = (config: any) => {
-        console.warn("Got ice candidate", config);
+        console.warn("SS sent ice candidate for ", config.peer_id);
         const peer = this.peerConnections[config.peer_id];
-        const ice_candidate = {...config.ice_candidate, sdpMid: config.ice_candidate.sdpMid || 'audio'};
+        const ice_candidate = {...config.ice_candidate, sdpMid: config.ice_candidate.sdpMid || 'video'};
         peer.addIceCandidate(new RTCIceCandidate(ice_candidate))
             .then((result: any) => {
                 console.warn('Successfully added ice candidate');
@@ -147,7 +147,7 @@ export default class Chat extends Component<Props, State> {
             });
     }
     _onRemovePeer = (config: any) => {
-        console.warn('Signaling server said to remove peer:', config);
+        console.warn('SS said to remove peer:', config);
         const peer_id = config.peer_id;
         if (peer_id in this.peerConnections) {
             this.peerConnections[peer_id].close();
@@ -159,7 +159,7 @@ export default class Chat extends Component<Props, State> {
         this._updateRenderedStreams();
     }
     _onSessionDescription = (config: any) => {
-        console.warn('Remote description received: ', config);
+        console.warn('SS sent remote description for: ', config.peer_id);
         const {peer_id} = config;
         const peer = this.peerConnections[peer_id];
         const remote_description = config.session_description;
@@ -170,21 +170,21 @@ export default class Chat extends Component<Props, State> {
                 console.warn("setRemoteDescription succeeded");
                 if (remote_description.type === "offer") {
                     console.warn("Creating answer");
-                    peer.createAnswer(
-                        (local_description: any) => {
+                    peer.createAnswer()
+                        .then((local_description: any) => {
                             console.warn("Answer description is: ", local_description);
-                            peer.setLocalDescription(local_description,
-                                () => { 
+                            peer.setLocalDescription(local_description)
+                                .then(() => { 
                                     this.signaling_socket.emit('relaySessionDescription', 
                                         {peer_id, session_description: local_description});
                                     console.warn("Answer setLocalDescription succeeded");
-                                },
-                                () => { console.error("Answer setLocalDescription failed!"); }
-                            );
-                        },
-                        (error: any) => {
-                            console.error("Error creating answer: ", error);
-                            console.error(peer);
+                                })
+                                .catch(() => {
+                                    console.error("Answer setLocalDescription failed!"); 
+                                });
+                        })
+                        .catch((error: any) => {
+                            console.error("Error creating answer: ", error, peer);
                         });
                 }
             })
@@ -218,7 +218,7 @@ export default class Chat extends Component<Props, State> {
     render() {
         return (
             <View style={styles.container}>
-                <Text style={styles.welcome}>Chat app!</Text>
+                <Text style={styles.welcome}>React Native Group Chat</Text>
                 <Text style={styles.instructions}>Connected to chat server: {this.state.connectedToServer ? 'yes!' : 'no :('}</Text>
                 <Text style={styles.instructions}>Peer streams connected: {this.state.streamsToRender.length}</Text>
                 {this.state.streamsToRender.map(stream => stream.toURL()).map(url => 
@@ -232,7 +232,7 @@ export default class Chat extends Component<Props, State> {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        justifyContent: 'center',
+        // justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: '#F5FCFF',
     },
