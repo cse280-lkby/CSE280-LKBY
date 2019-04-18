@@ -7,11 +7,12 @@ const SLOT_TYPES = require('./slot-types');
  * 
  * Questions:
  *  must contain a 'name', 'prompt', 'type' (SLOT_TYPES.XXXX).
- *  Optional: 'reprompt', 'onResponse' (more below)
+ *  Optional: 'useWit', 'reprompt', 'onResponse' (more below)
  *  Note: the first question has ID 0, second has ID 1, etc.
  * 
- * onResponse(value):
+ * onResponse(value, witResponse?):
  *  Called when a question is answered.
+ *  witResponse is either null or a Wit.ai response object if useWit=true.
  *  Possible returns:
  *   - A string to jump to a different section
  *   - Nothing to continue normal conversation flow.
@@ -25,7 +26,13 @@ const SECTIONS = {
             {
                 name: 'feeling',
                 prompt: 'Hello! Welcome back. How are you feeling today?',
-                type: SLOT_TYPES.OPEN_ENDED
+                type: SLOT_TYPES.OPEN_ENDED,
+                useWit: true,
+                onResponse(input, witResponse) {
+                    if (witResponse != null) {
+                        console.log('Got response from Wit API!', witResponse);
+                    }
+                }
             },
         ],
         next: 'understanding_content'

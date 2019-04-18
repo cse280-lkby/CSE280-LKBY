@@ -11,6 +11,13 @@ const { JovoDebugger } = require('jovo-plugin-debugger');
 const { FileDb } = require('jovo-db-filedb');
 const { CONFIG, SECTIONS } = require('./questionnaire');
 
+let witClient = null;
+
+if (CONFIG.witToken != null) {
+    const { Wit } = require('node-wit');
+    witClient = new Wit({accessToken: CONFIG.witToken});
+}
+
 const app = new App();
 
 app.use(
@@ -37,7 +44,7 @@ app.setHandler({
     TakingQuestionnaire: {
         // First activated by responding yes to consent question.
         // Then continually activated by Alexa dialog fulfillment.
-        SurveyQuestionIntent() {
+        async SurveyQuestionIntent() {
             // If we haven't yet begun the questionnaire
             if (!this.$session.$data.questionnaireState) {
                 console.log("New questionnaire session created.");
@@ -89,8 +96,20 @@ app.setHandler({
                 console.log(`Response to last question '${lastQuestion.name}' was '${lastAnswer}'.`);
                 this.$user.$data.questionnaire[section.name][lastQuestion.name] = lastAnswer;
 
+                // Send response to Wit API, if needed
+                let witResponse = null;
+                if (lastQuestion.useWit) {
+                    try {
+                        // Get the Wit response for the given input string
+                        // TODO: pass context such as time zone, possibly maintain state
+                        witResponse = await witClient.message(lastAnswer, {});
+                    } catch (e) {
+                        console.error('Wit API error:', e);
+                    }
+                }
+
                 // Call the questions onResponse handler
-                const redirectTo = lastQuestion.onResponse && lastQuestion.onResponse(lastAnswer);
+                const redirectTo = lastQuestion.onResponse && lastQuestion.onResponse(lastAnswer, witResponse);
 
                 // If the response handler returned a section name, redirect to it
                 if (typeof redirectTo === 'string') {
