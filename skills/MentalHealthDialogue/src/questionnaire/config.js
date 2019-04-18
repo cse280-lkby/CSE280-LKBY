@@ -7,7 +7,7 @@ const CONFIG = {
         + ' Do you consent to have your answers saved for research purposes?',
     // message after user finishes questionnaire
     completed: 'That\'s all I have for now. Thank you for taking the questionnaire!',
-    witToken: 'Y7HD7HHOHBOXBVLC4GTHRGOUOKDQKWFV' // TODO, store securely
+    witToken: 'SBV2SAX5336VK2GWHZJX4XO3UPWUMUD7' // TODO, store securely
 }
 
 module.exports = CONFIG;

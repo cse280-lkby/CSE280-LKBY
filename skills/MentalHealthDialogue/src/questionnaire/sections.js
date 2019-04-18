@@ -30,12 +30,99 @@ const SECTIONS = {
                 useWit: true,
                 onResponse(input, witResponse) {
                     if (witResponse != null) {
-                        console.log('Got response from Wit API!', witResponse);
+                        console.log('Got response from Wit API!', JSON.stringify(witResponse));
+                        if (witResponse.entities.negative) {
+                            return 'tempNegative';
+                        }
+                        return 'tempPositive';
                     }
                 }
             },
         ],
         next: 'understanding_content'
+    },
+    tempNegative: {
+        name: 'tempNegative',
+        questions: [
+            {
+                name: 'negative',
+                prompt: 'Tell me more.',
+                type: SLOT_TYPES.OPEN_ENDED,
+                useWit: true,
+                onResponse(input, witResponse) {
+                    if (witResponse != null) {
+                        console.log('Got response from Wit API!', JSON.stringify(witResponse));
+                        if (witResponse.entities.exam) {
+                            return 'tempExam';
+                        }
+                        else if (witResponse.entities.course_materials) {
+                            return 'tempCourseMaterials';
+                        }
+                        else if (witResponse.entities.time_management) {
+                            return 'tempTimeManagement';
+                        }
+                        return 'tempPositive';
+                    }
+                }
+            },
+        ],
+        next: null
+    },
+    tempPositive: {
+        name: 'tempPositive',
+        questions: [
+            {
+                name: 'positive',
+                prompt: 'That\'s great, have a nice rest of your day. Be sure to check back in tomorrow!',
+                type: SLOT_TYPES.OPEN_ENDED,
+                onResponse(input) {
+                    return 'check_in'      ;              
+                }
+            },
+        ],
+        next: null
+    },
+    tempExam: {
+        name: 'tempExam',
+        questions: [
+            {
+                name: 'exam',
+                prompt: 'Here is some help for test anxiety.',
+                type: SLOT_TYPES.OPEN_ENDED,
+                onResponse(input) {
+                    return 'check_in'      ;              
+                }
+            },
+        ],
+        next: null
+    },
+    tempCourseMaterials: {
+        name: 'tempCourseMaterials',
+        questions: [
+            {
+                name: 'course_materials',
+                prompt: 'Here is some help for trouble understanding content.',
+                type: SLOT_TYPES.OPEN_ENDED,
+                onResponse(input) {
+                    return 'check_in'      ;              
+                }
+            },
+        ],
+        next: null
+    },
+    tempTimeManagement: {
+        name: 'tempTimeManagement',
+        questions: [
+            {
+                name: 'time_management',
+                prompt: 'Here is some help for improving your time management skills.',
+                type: SLOT_TYPES.OPEN_ENDED,
+                onResponse(input) {
+                    return 'check_in'      ;              
+                }
+            },
+        ],
+        next: null
     },
     understanding_content: {
         name: 'understanding_content',
