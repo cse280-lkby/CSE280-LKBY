@@ -45,7 +45,7 @@ export default class App extends Component<Props, State> {
     return (
       <View>
         <Text>Hello there</Text>
-        {isLoggedIn ? <Chat username={this.state.username}/> : <Login onSetName={newName => this.setState(state => ({...state, username: newName}))}/>/*<View style={styles.container}>
+        {isLoggedIn ? <Chat username={this.state.username}/> : <Login onSetName={newName => this.setState(state => ({...state, username: newName}))} />/*(<View style={styles.container}>
                 <TextInput
                     onChangeText={this.handleChangeUsername}
                     value={username}
@@ -57,7 +57,7 @@ export default class App extends Component<Props, State> {
                     title="Next"
                     onPress={this.setTrueIsLoggedIn}
                 />
-    </View>*/}
+        </View>)*/}
       </View>
     );
   }

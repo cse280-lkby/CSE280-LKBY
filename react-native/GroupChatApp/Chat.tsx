@@ -16,7 +16,9 @@ const ICE_SERVERS = [
     { urls: "stun:stun.l.google.com:19302" }
 ];
 
-interface Props { }
+interface Props { 
+    username: string
+}
 interface State {
     connectedToServer: boolean;
     streamsToRender: Array<any>;
@@ -45,7 +47,7 @@ export default class Chat extends Component<Props, State> {
             }));
 
             this._setupLocalMedia().then(() => {
-                this.signaling_socket.emit('join', { "channel": DEFAULT_CHANNEL, "userdata": '' }); //get username data from App
+                this.signaling_socket.emit('join', { "channel": DEFAULT_CHANNEL, "userdata": this.props.username });
             }); // TODO handle error (probably permission denied)
         });
 

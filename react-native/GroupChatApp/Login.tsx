@@ -2,7 +2,9 @@ import React, { Component } from 'react';
 import { StyleSheet, Text, View, Button, TextInput } from 'react-native';
 import App from './App'
 
-interface Props { }
+interface Props {
+    onSetName(newName: string): void
+}
 interface State { 
     username: string
 }
@@ -23,20 +25,18 @@ export default class Login extends Component<Props, State> {
         const { username } = this.state
         return (  
             <View style={styles.container}>
-                /*Input to get the value from the user*/
+                <Text>Hey there</Text>
                 <TextInput
                     onChangeText={this.handleChangeUsername}
                     value={username}
-                    
                     placeholder={'Enter your username'}
                     style={styles.input}
                 />
-                /*Button to go to the next activity*/
                 <Button
                     title="Next"
-                    onPress={<App isLoggedIn={ true }/>} //How do I pass this info?
+                    onPress={() => this.props.onSetName(this.state.username)} //How do I pass this info?
                 />
-        </View>
+            </View>
         );
       }
 }
