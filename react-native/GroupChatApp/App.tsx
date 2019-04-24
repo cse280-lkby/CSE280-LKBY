@@ -9,7 +9,8 @@
  */
 
 import React, {Component} from 'react';
-import {Platform, StyleSheet, Text, View} from 'react-native';
+import {Platform, StyleSheet, Text, View, Button, TextInput} from 'react-native';
+import Login from './Login'
 import Chat from './Chat'
 
 const instructions = Platform.select({
@@ -19,23 +20,49 @@ const instructions = Platform.select({
     'Shake or press menu button for dev menu',
 });
 
-
 interface Props {}
-interface State {}
+interface State {
+  username: string,
+  isLoggedIn: boolean
+}
 export default class App extends Component<Props, State> {
   state = {
+    username: '',
+    isLoggedIn: false
   };
+
+  handleChangeUsername (text: string) {
+    this.setState({ username: text })
+  }
+
+  setTrueIsLoggedIn () {
+    this.setState({ isLoggedIn: true })
+  }
+
   render() {
+    const isLoggedIn = this.state.isLoggedIn;
+    const { username } = this.state
     return (
-      <Chat />
-      // <View style={styles.container}>
-      //   <Text style={styles.welcome}>Chat app!</Text>
-      //   <Text style={styles.instructions}>Socket connected?: {this.state.connected ? 'yes' : 'no'}</Text>
-      //   <Text style={styles.instructions}>{instructions}</Text>
-      // </View>
+      <View>
+        <Text>Hello there</Text>
+        {isLoggedIn ? <Chat /*username={this.state.username}*//> : /*<Login />*/<View style={styles.container}>
+                <TextInput
+                    onChangeText={this.handleChangeUsername}
+                    value={username}
+                    
+                    placeholder={'Enter your username'}
+                    style={styles.instructions}
+                />
+                <Button
+                    title="Next"
+                    onPress={this.setTrueIsLoggedIn}
+                />
+            </View>}
+      </View>
     );
   }
 }
+
 
 const styles = StyleSheet.create({
   container: {

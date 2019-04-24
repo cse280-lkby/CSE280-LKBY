@@ -1,6 +1,6 @@
 import SocketIOClient from 'socket.io-client';
 import React, { Component } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, Button, TextInput } from 'react-native';
 import {
     RTCIceCandidate,
     RTCPeerConnection,
@@ -45,7 +45,7 @@ export default class Chat extends Component<Props, State> {
             }));
 
             this._setupLocalMedia().then(() => {
-                this.signaling_socket.emit('join', { "channel": DEFAULT_CHANNEL, "userdata": {} });
+                this.signaling_socket.emit('join', { "channel": DEFAULT_CHANNEL, "userdata": '' }); //get username data from App
             }); // TODO handle error (probably permission denied)
         });
 
@@ -218,9 +218,10 @@ export default class Chat extends Component<Props, State> {
     render() {
         return (
             <View style={styles.container}>
-                <Text style={styles.welcome}>React Native Group Chat</Text>
-                <Text style={styles.instructions}>Connected to chat server: {this.state.connectedToServer ? 'yes!' : 'no :('}</Text>
-                <Text style={styles.instructions}>Peer streams connected: {this.state.streamsToRender.length}</Text>
+                <Text style={styles.welcome}>Health Group Session</Text>
+                <Text style={styles.instructions}>Connection status: {this.state.connectedToServer ? 'Success!' : 'Failed :('}</Text>
+                <Text style={styles.instructions}>Number of other people in chat: {this.state.streamsToRender.length}</Text>
+                <Text style={styles.instructions}>Members: {this.peerConnections} </Text>
                 {this.state.streamsToRender.map(stream => stream.toURL()).map(url => 
                     <RTCView key={url} streamURL={url} />
                 )}
