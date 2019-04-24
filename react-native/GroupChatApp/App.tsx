@@ -10,21 +10,14 @@
 
 import React, {Component} from 'react';
 import {Platform, StyleSheet, Text, View} from 'react-native';
-import Chat from './Chat'
-
-const instructions = Platform.select({
-  ios: 'Press Cmd+R to reload,\n' + 'Cmd+D or shake for dev menu',
-  android:
-    'Double tap R on your keyboard to reload,\n' +
-    'Shake or press menu button for dev menu',
-});
-
+import Chat from './Chat';
+import NotificationHandler from './NotificationHandler';
 
 interface Props {}
 interface State {}
 export default class App extends Component<Props, State> {
-  state = {
-  };
+  state = {};
+  notificationHandler = new NotificationHandler();
   render() {
     return (
       <Chat />
