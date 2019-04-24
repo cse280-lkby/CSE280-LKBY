@@ -1,4 +1,4 @@
-package com.groupchatapp;
+package edu.lehigh.cse280_lkby.groupchatapp;
 
 import com.facebook.react.ReactActivity;
 

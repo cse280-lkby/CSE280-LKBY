@@ -102,7 +102,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.groupchatapp"
+        applicationId "edu.lehigh.cse280_lkby.groupchatapp"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
