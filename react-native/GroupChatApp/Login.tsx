@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View, Button, TextInput } from 'react-native';
 import App from './App'
+import { genericTypeAnnotation } from '@babel/types';
 
 interface Props {
     onSetName(newName: string): void
@@ -15,26 +16,26 @@ export default class Login extends Component<Props, State> {
 
     constructor(props: Props) {
         super(props)
+        console.warn("Starting Login!");
     }
 
     handleChangeUsername (text: string) {
-        this.setState({ username: text })
+        this.setState(state => ({...state, username: text}))
     }
 
     render() {
-        const { username } = this.state
         return (  
             <View style={styles.container}>
-                <Text>Hey there</Text>
                 <TextInput
-                    onChangeText={this.handleChangeUsername}
-                    value={username}
+                    value={this.state.username}
                     placeholder={'Enter your username'}
                     style={styles.input}
+                    onChangeText={(username) => this.setState({username})}
                 />
                 <Button
+                    color="#841584"
                     title="Next"
-                    onPress={() => this.props.onSetName(this.state.username)} //How do I pass this info?
+                    onPress={() => this.props.onSetName(this.state.username)}
                 />
             </View>
         );
@@ -43,7 +44,6 @@ export default class Login extends Component<Props, State> {
 
 const styles = StyleSheet.create({
     container: {
-      flex: 1,
       backgroundColor: '#fff',
       alignItems: 'center',
       padding: 16,
@@ -54,5 +54,5 @@ const styles = StyleSheet.create({
       padding: 10,
       marginBottom: 10,
       backgroundColor: '#DBDBD6',
-    },
+    }
   });

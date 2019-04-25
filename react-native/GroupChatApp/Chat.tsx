@@ -1,6 +1,6 @@
 import SocketIOClient from 'socket.io-client';
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, Button, TextInput } from 'react-native';
+import { StyleSheet, Text, View, FlatList } from 'react-native';
 import {
     RTCIceCandidate,
     RTCPeerConnection,
@@ -34,6 +34,7 @@ export default class Chat extends Component<Props, State> {
     };
     constructor(props: Props) {
         super(props);
+        console.warn("Starting Chat!");
         this.signaling_socket = SocketIOClient(SIGNALING_SERVER, {
             rejectUnauthorized: false,
             transports: ['websocket']
@@ -223,9 +224,8 @@ export default class Chat extends Component<Props, State> {
                 <Text style={styles.welcome}>Health Group Session</Text>
                 <Text style={styles.instructions}>Connection status: {this.state.connectedToServer ? 'Success!' : 'Failed :('}</Text>
                 <Text style={styles.instructions}>Number of other people in chat: {this.state.streamsToRender.length}</Text>
-                <Text style={styles.instructions}>Members: {this.peerConnections} </Text>
                 {this.state.streamsToRender.map(stream => stream.toURL()).map(url => 
-                    <RTCView key={url} streamURL={url} />
+                    <RTCView key={url} streamURL={url} username={url} />
                 )}
             </View>
         );

@@ -31,24 +31,18 @@ export default class App extends Component<Props, State> {
     isLoggedIn: false
   };
 
-  handleChangeUsername (text: string) {
-    this.setState({ username: text })
-  }
-
   setTrueIsLoggedIn () {
     this.setState({ isLoggedIn: true })
   }
 
   render() {
     const isLoggedIn = this.state.isLoggedIn;
-    const { username } = this.state
     return (
       <View>
-        <Text>Hello there</Text>
-        {isLoggedIn ? <Chat username={this.state.username}/> : <Login onSetName={newName => this.setState(state => ({...state, username: newName}))} />/*(<View style={styles.container}>
+        {isLoggedIn ? <Chat username={this.state.username}/> : <Login onSetName={newName => this.setState(state => ({...state, username: newName, isLoggedIn: true}))} />/*(<View style={styles.container}>
                 <TextInput
-                    onChangeText={this.handleChangeUsername}
-                    value={username}
+                    onChangeText={(username) => this.setState({username})}
+                    value={this.state.username}
                     
                     placeholder={'Enter your username'}
                     style={styles.instructions}
