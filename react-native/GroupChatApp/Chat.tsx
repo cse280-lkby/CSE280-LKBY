@@ -237,11 +237,11 @@ export default class Chat extends Component<Props, State> {
                 <View style={styles.welcome}>
                     {this.state.currentPeers.map(peer => <PeerView key={peer.id} peer={peer}/>)}
                     
+                    {/* <PeerView peer={{id: Math.random().toString(), userdata: { username: 'test' }, streamUrl: 'no'}} />
                     <PeerView peer={{id: Math.random().toString(), userdata: { username: 'test' }, streamUrl: 'no'}} />
                     <PeerView peer={{id: Math.random().toString(), userdata: { username: 'test' }, streamUrl: 'no'}} />
                     <PeerView peer={{id: Math.random().toString(), userdata: { username: 'test' }, streamUrl: 'no'}} />
-                    <PeerView peer={{id: Math.random().toString(), userdata: { username: 'test' }, streamUrl: 'no'}} />
-                    <PeerView peer={{id: Math.random().toString(), userdata: { username: 'test' }, streamUrl: 'no'}} />
+                    <PeerView peer={{id: Math.random().toString(), userdata: { username: 'test' }, streamUrl: 'no'}} /> */}
                 </View>
             </View>
         );
