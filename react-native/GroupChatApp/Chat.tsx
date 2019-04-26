@@ -1,5 +1,6 @@
 import SocketIOClient from 'socket.io-client';
 import React, { Component } from 'react';
+import InCallManager from 'react-native-incall-manager';
 import { StyleSheet, Text, View, FlatList } from 'react-native';
 import {
     RTCIceCandidate,
@@ -50,6 +51,8 @@ export default class Chat extends Component<Props, State> {
 
             this._setupLocalMedia().then(() => {
                 this.signaling_socket.emit('join', { "channel": DEFAULT_CHANNEL, userdata: { username: this.props.username }});
+                InCallManager.start({media: 'audio'}); // audio/video, default: audio
+                InCallManager.setForceSpeakerphoneOn(true);
             }); // TODO handle error (probably permission denied)
         });
 

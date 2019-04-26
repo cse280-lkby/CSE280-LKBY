@@ -3,6 +3,7 @@ package edu.lehigh.cse280_lkby.groupchatapp;
 import android.app.Application;
 
 import com.facebook.react.ReactApplication;
+import com.zxcpoiu.incallmanager.InCallManagerPackage;
 import com.oney.WebRTCModule.WebRTCModulePackage;
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
@@ -28,6 +29,7 @@ public class MainApplication extends Application implements ReactApplication {
     protected List<ReactPackage> getPackages() {
       return Arrays.<ReactPackage>asList(
           new MainReactPackage(),
+            new InCallManagerPackage(),
           new WebRTCModulePackage(),
           new RNFirebasePackage(),
           new RNFirebaseMessagingPackage(),
