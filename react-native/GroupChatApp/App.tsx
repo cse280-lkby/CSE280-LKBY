@@ -39,19 +39,11 @@ export default class App extends Component<Props, State> {
     const isLoggedIn = this.state.isLoggedIn;
     return (
       <View>
-        {isLoggedIn ? <Chat username={this.state.username}/> : <Login onSetName={newName => this.setState(state => ({...state, username: newName, isLoggedIn: true}))} />/*(<View style={styles.container}>
-                <TextInput
-                    onChangeText={(username) => this.setState({username})}
-                    value={this.state.username}
-                    
-                    placeholder={'Enter your username'}
-                    style={styles.instructions}
-                />
-                <Button
-                    title="Next"
-                    onPress={this.setTrueIsLoggedIn}
-                />
-        </View>)*/}
+        {
+          isLoggedIn
+            ? <Chat username={this.state.username}/>
+            : <Login onSetName={newName => this.setState(state => ({...state, username: newName, isLoggedIn: true}))} />
+        }
       </View>
     );
   }
