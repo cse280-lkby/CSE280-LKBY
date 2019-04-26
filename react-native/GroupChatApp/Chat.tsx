@@ -1,13 +1,13 @@
 import SocketIOClient from 'socket.io-client';
 import React, { Component } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, FlatList } from 'react-native';
 import {
     RTCIceCandidate,
     RTCPeerConnection,
     RTCSessionDescription,
-    RTCView,
     mediaDevices 
 } from 'react-native-webrtc';
+import PeerView, { Peer } from './PeerView';
 
 const SIGNALING_SERVER = "http://ec2-54-164-202-125.compute-1.amazonaws.com:8080";
 const DEFAULT_CHANNEL = 'some-global-channel-name';
@@ -16,22 +16,26 @@ const ICE_SERVERS = [
     { urls: "stun:stun.l.google.com:19302" }
 ];
 
-interface Props { }
+interface Props { 
+    username: string
+}
 interface State {
     connectedToServer: boolean;
-    streamsToRender: Array<any>;
+    currentPeers: Array<Peer>;
 }
 export default class Chat extends Component<Props, State> {
     localMediaStream: any;
     peerConnections = {};
     peerStreams = {};
+    peerUserData = {};
     signaling_socket: SocketIOClient.Socket;
     state = {
         connectedToServer: false,
-        streamsToRender: [],
+        currentPeers: [],
     };
     constructor(props: Props) {
         super(props);
+        console.warn("Starting Chat!");
         this.signaling_socket = SocketIOClient(SIGNALING_SERVER, {
             rejectUnauthorized: false,
             transports: ['websocket']
@@ -45,7 +49,7 @@ export default class Chat extends Component<Props, State> {
             }));
 
             this._setupLocalMedia().then(() => {
-                this.signaling_socket.emit('join', { "channel": DEFAULT_CHANNEL, "userdata": {} });
+                this.signaling_socket.emit('join', { "channel": DEFAULT_CHANNEL, userdata: { username: this.props.username }});
             }); // TODO handle error (probably permission denied)
         });
 
@@ -76,7 +80,7 @@ export default class Chat extends Component<Props, State> {
     }
     _onAddPeer = (config: any) => {
         console.warn("Adding peer: ", config);
-        const { peer_id } = config;
+        const { peer_id, userdata } = config;
         if (peer_id in this.peerConnections) {
             return;
         }
@@ -87,6 +91,7 @@ export default class Chat extends Component<Props, State> {
         );
 
         this.peerConnections[peer_id] = peer_connection;
+        this.peerUserData[peer_id] = userdata;
 
         peer_connection.onicecandidate = (event: any) => {
             if (event.candidate) {
@@ -104,7 +109,7 @@ export default class Chat extends Component<Props, State> {
             console.warn("pc.onaddstream, peer_id:", peer_id, "event:", event);
             const {stream} = event;
             this.peerStreams[peer_id] = stream;
-            this._updateRenderedStreams();
+            this._updateCurrentPeers();
         }
 
         /* Add our local stream */
@@ -156,7 +161,7 @@ export default class Chat extends Component<Props, State> {
         delete this.peerConnections[peer_id];
         delete this.peerStreams[config.peer_id];
 
-        this._updateRenderedStreams();
+        this._updateCurrentPeers();
     }
     _onSessionDescription = (config: any) => {
         console.warn('SS sent remote description for: ', config.peer_id);
@@ -206,24 +211,35 @@ export default class Chat extends Component<Props, State> {
             });
         });
     }
-    _updateRenderedStreams = () => {
+    _updateCurrentPeers = () => {
         // TODO handle muting
         this.setState((state: State) => {
+            const peers = Object.keys(this.peerStreams).map(peer_id => ({
+                id: peer_id,
+                streamUrl: this.peerStreams[peer_id].toURL(),
+                userdata: this.peerUserData[peer_id]
+            }));
             return {
                 ...state,
-                streamsToRender: Object.values(this.peerStreams)
+                currentPeers: peers
             };
         });
     }
     render() {
         return (
             <View style={styles.container}>
-                <Text style={styles.welcome}>React Native Group Chat</Text>
-                <Text style={styles.instructions}>Connected to chat server: {this.state.connectedToServer ? 'yes!' : 'no :('}</Text>
-                <Text style={styles.instructions}>Peer streams connected: {this.state.streamsToRender.length}</Text>
-                {this.state.streamsToRender.map(stream => stream.toURL()).map(url => 
-                    <RTCView key={url} streamURL={url} />
-                )}
+                <Text style={styles.welcome}>Health Group Session</Text>
+                <Text style={styles.instructions}>Connection status: {this.state.connectedToServer ? 'Success!' : 'Failed :('}</Text>
+                <Text style={styles.instructions}>Number of other people in chat: {this.state.currentPeers.length}</Text>
+                <View style={styles.welcome}>
+                    {this.state.currentPeers.map(peer => <PeerView key={peer.id} peer={peer}/>)}
+                    
+                    <PeerView peer={{id: Math.random().toString(), userdata: { username: 'test' }, streamUrl: 'no'}} />
+                    <PeerView peer={{id: Math.random().toString(), userdata: { username: 'test' }, streamUrl: 'no'}} />
+                    <PeerView peer={{id: Math.random().toString(), userdata: { username: 'test' }, streamUrl: 'no'}} />
+                    <PeerView peer={{id: Math.random().toString(), userdata: { username: 'test' }, streamUrl: 'no'}} />
+                    <PeerView peer={{id: Math.random().toString(), userdata: { username: 'test' }, streamUrl: 'no'}} />
+                </View>
             </View>
         );
     }
