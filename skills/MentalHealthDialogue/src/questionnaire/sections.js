@@ -25,7 +25,7 @@ const SECTIONS = {
         questions: [
             {
                 name: 'feeling',
-                prompt: 'Hello! Welcome back. How are you feeling today?',
+                prompt: 'How are you feeling today?',
                 type: SLOT_TYPES.OPEN_ENDED,
                 useWit: true,
                 onResponse(input, witResponse) {
@@ -87,10 +87,12 @@ const SECTIONS = {
         questions: [
             {
                 name: 'exam',
-                prompt: 'Test anxiety is a very common problem among students, so know that you\'re not alone. '
+                prompt: 'Good resources to consider when struggling with test anxiety or test performance are tutors and '
+                + 'the center for academic success.',
+                /*prompt: 'Test anxiety is a very common problem among students, so know that you\'re not alone. '
                 + 'Good resources to consider when struggling with test anxiety or test performance are tutors and '
                 + 'the center for academic success.'
-                + 'Those resources will help you to manage your time and help you understand the material prior to your exams. ',
+                + 'Those resources will help you to manage your time and help you understand the material prior to your exams. ',*/
                 type: SLOT_TYPES.OPEN_ENDED,
                 onResponse(input) {
                     return 'check_in'      ;              
@@ -104,9 +106,11 @@ const SECTIONS = {
         questions: [
             {
                 name: 'course_materials',
-                prompt: 'Not understanding content is a common issue, the courses are supposed to be challenging. '
-                + 'A few things that students find helpful when they don\'t understand material, are finding a tutor, '
+                prompt: 'A few things that students find helpful when they don\'t understand material are finding a tutor, '
                 + 'attending office hours, and finding a group of classmates to study with.',
+                /*prompt: 'Not understanding content is a common issue, the courses are supposed to be challenging. '
+                + 'A few things that students find helpful when they don\'t understand material, are finding a tutor, '
+                + 'attending office hours, and finding a group of classmates to study with.',*/
                 type: SLOT_TYPES.OPEN_ENDED,
                 onResponse(input) {
                     return 'check_in'      ;              
@@ -120,10 +124,13 @@ const SECTIONS = {
         questions: [
             {
                 name: 'time_management',
-                prompt: 'Managing your time is one of the most difficult aspects of college. In order to keep track of '
+                prompt: 'In order to keep track of everything you need to accomplish try to '
+                + ' create a planner for yourself and prioritize a list of things '
+                + ' that you need to do. Make the list as specific as possible.',
+                /*prompt: 'Managing your time is one of the most difficult aspects of college. In order to keep track of '
                 + ' everything you need to accomplish try to create a planner for yourself and prioritize a list of things '
                 + ' that you need to do. Make the list as specific as possible.  Students often see that when you write everything'
-                + ' that must be done down on paper, the list seems more manageable than it was in your head.',
+                + ' that must be done down on paper, the list seems more manageable than it was in your head.',*/
                 type: SLOT_TYPES.OPEN_ENDED,
                 onResponse(input) {
                     return 'check_in'      ;              
