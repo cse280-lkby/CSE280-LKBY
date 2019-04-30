@@ -25,17 +25,12 @@ const SECTIONS = {
         questions: [
             {
                 name: 'name',
-                prompt: 'What is your name? ',
+                prompt: 'What can I call you? ',
                 type: SLOT_TYPES.OPEN_ENDED,
             },
             {
                 name: 'major',
                 prompt: 'What is your current major? ',
-                type: SLOT_TYPES.OPEN_ENDED,
-            },
-            {
-                name: 'academic_standing',
-                prompt: 'What is your class? ',
                 type: SLOT_TYPES.OPEN_ENDED,
             },
             {
