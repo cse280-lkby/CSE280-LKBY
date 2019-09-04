@@ -1,4 +1,5 @@
 import firebase from 'react-native-firebase';
+import { Clipboard } from 'react-native';
 
 export default class NotificationHandler {
     fcmToken: string | null = null;
@@ -10,6 +11,7 @@ export default class NotificationHandler {
                 if (token) {
                     this.fcmToken = token;
                     console.warn('Got fcm token:', token);
+                    Clipboard.setString(token);
                 } else {
                     console.error('No fcm token yet.');
                 }
