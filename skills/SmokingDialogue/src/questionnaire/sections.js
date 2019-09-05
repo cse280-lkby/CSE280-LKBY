@@ -57,12 +57,40 @@ const SECTIONS = {
                 type: SLOT_TYPES.NUMBER
             },{
                 name: 'reason_for_smoking',
-                prompt: 'Here\'s a question you probably weren\'t expecting, what do you like about smoking?',
-                type: SLOT_TYPES.OPEN_ENDED
+                prompt: 'Here\'s a question you probably weren\'t expecting, why did you start smoking?',
+                type: SLOT_TYPES.OPEN_ENDED,
+                useWit: true,
+                onResponse(input, witResponse) {
+                    this.context.reason_for_smoking = "you wanted to.";
+                    if (witResponse != null && witResponse.entities != null) {
+                        console.log('Got response from Wit API!', JSON.stringify(witResponse));
+                        const {reasons_for_smoking} = witResponse.entities;
+                        if (reasons_for_smoking != null) {
+                            const reason = witResponse.entities.reasons_for_smoking[0].value;
+                            console.log('Value:', reason);
+                            this.context.reason_for_smoking = reason;
+                        }
+                    }
+                }
             },{
                 name: 'reason_for_quitting',
                 prompt: 'I\'m wondering if a recent event inspired you to quit. What are your main reasons for quitting now?',
-                type: SLOT_TYPES.OPEN_ENDED
+                type: SLOT_TYPES.OPEN_ENDED,
+                useWit: true,
+                onResponse(input, witResponse) {
+                    this.context.reason_for_quitting = "you wanted to.";
+                    if (witResponse != null && witResponse.entities != null) {
+                        console.log('Got response from Wit API!', JSON.stringify(witResponse));
+                        const {reasons_for_quitting} = witResponse.entities;
+                        if (reasons_for_quitting != null) {
+                            const reason = witResponse.entities.reasons_for_quitting[0].value;
+                            console.log('Value:', reason);
+                            this.context.reason_for_quitting = reason;
+                        }
+                    }
+                    return {response: 'I see that you started smoking because of ' + this.context.reason_for_smoking +
+                        '. You want to quit smoking because of ' + this.context.reason_for_quitting, next: 'healthIssues'};
+                }
             },
         ],
         next: 'healthIssues'
