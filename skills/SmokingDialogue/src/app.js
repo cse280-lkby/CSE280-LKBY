@@ -48,7 +48,7 @@ app.setHandler({
             // If we haven't yet begun the questionnaire
             if (!this.$session.$data.questionnaireState) {
                 console.log("New questionnaire session created.");
-                this.$session.$data.questionnaireState = { sectionId: SECTIONS.__main__, questionId: 0 };
+                this.$session.$data.questionnaireState = { context: {}, sectionId: SECTIONS.__main__, questionId: 0 };
 
                 // back-up old questionnaire responses (if they exist)
                 if (this.$user.$data.questionnaire) {
@@ -64,7 +64,16 @@ app.setHandler({
                 };
             }
 
-            const { sectionId, questionId } = this.$session.$data.questionnaireState;
+            const { context, prevResponse, sectionId, questionId } = this.$session.$data.questionnaireState;
+
+            // Reset the prev response if it exists
+            if (prevResponse) {
+                this.$session.$data.questionnaireState = {
+                    ...this.$session.$data.questionnaireState,
+                    prevResponse: null,
+                };
+            }
+
             const section = SECTIONS[sectionId];
 
             if (!this.$user.$data.questionnaire[sectionId]) {
@@ -109,37 +118,59 @@ app.setHandler({
                 }
 
                 // Call the questions onResponse handler
-                const redirectTo = lastQuestion.onResponse && lastQuestion.onResponse(lastAnswer, witResponse);
+                if (lastQuestion.onResponse != null) {
+                    const thisArg = { context };
+                    const responseResult = lastQuestion.onResponse.call(thisArg, lastAnswer, witResponse);
 
-                // If the response handler returned a section name, redirect to it
-                if (typeof redirectTo === 'string') {
-                    this.$session.$data.questionnaireState = { sectionId: redirectTo, questionId: 0 };
-                    return this.toStateIntent("TakingQuestionnaire", "SurveyQuestionIntent");
+                    this.$session.$data.questionnaireState = {
+                        ...this.$session.$data.questionnaireState,
+                        prevResponse: responseResult && responseResult.response,
+                    };
+
+                    // If the response handler returned a section name, redirect to it
+                    const redirectTo = typeof responseResult === 'string' ? responseResult : (responseResult && responseResult.next);
+                    if (typeof redirectTo === 'string') {
+                        this.$session.$data.questionnaireState = {
+                            ...this.$session.$data.questionnaireState,
+                            sectionId: redirectTo,
+                            questionId: 0,
+                        };
+                        return this.toStateIntent("TakingQuestionnaire", "SurveyQuestionIntent");
+                    }
                 }
             }
 
             // If we are out of questions in this section, then the section is complete.
             if (!questions[questionId]) {
-                // 
                 const {next} = section;
                 if (!next) {
                     // If there is not a 'next' section, questionnaire is over.
-                    this.tell(CONFIG.completed);
+                    const finalMessage = `${prevResponse && prevResponse + '. ' || ''}${CONFIG.completed}`;
+                    this.tell(finalMessage);
                     this.$user.$data.questionnaire.__finished__ = true;
                     return;
                 }
 
                 // If there is a next session, jump to that.
-                this.$session.$data.questionnaireState = { sectionId: next, questionId: 0 };
+                this.$session.$data.questionnaireState = {
+                    ...this.$session.$data.questionnaireState,
+                    sectionId: next,
+                    questionId: 0
+                };
                 // Re-run current intent with new questionnaire state.
                 return this.toStateIntent("TakingQuestionnaire", "SurveyQuestionIntent");
             }
 
             const question = questions[questionId];
             // Elicit value of appropritate slot based on question type
-            this.$alexaSkill.$dialog.elicitSlot(question.type.name, question.prompt, question.reprompt);
+            const nextPrompt = `${prevResponse && prevResponse + '. '|| ''}${question.prompt}`;
+            this.$alexaSkill.$dialog.elicitSlot(question.type.name, nextPrompt, question.reprompt);
             // Move state to the next question
-            this.$session.$data.questionnaireState= { sectionId, questionId: questionId + 1 };
+            this.$session.$data.questionnaireState = {
+                ...this.$session.$data.questionnaireState,
+                sectionId,
+                questionId: questionId + 1 
+            };
         }
     },
     

@@ -15,6 +15,9 @@ const SLOT_TYPES = require('./slot-types');
  *  witResponse is either null or a Wit.ai response object if useWit=true.
  *  Possible returns:
  *   - A string to jump to a different section
+ *   - An object with optional "response" and "next" properties.
+ *   -   response: optional string spoken immediately before next question
+ *   -   next: optional next state to jump to, if not set will do normal conversation flow
  *   - Nothing to continue normal conversation flow.
  */
 
