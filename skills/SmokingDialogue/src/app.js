@@ -112,6 +112,7 @@ app.setHandler({
                         // Get the Wit response for the given input string
                         // TODO: pass context such as time zone, possibly maintain state
                         witResponse = await witClient.message(lastAnswer, {});
+                        this.$user.$data.questionnaire[section.name][lastQuestion.name + "$wit"] = witResponse;
                     } catch (e) {
                         console.error('Wit API error:', e);
                     }
