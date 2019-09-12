@@ -48,16 +48,50 @@ const SECTIONS = {
         name: 'motivation',
         questions: [
             {
-                name: 'have_smoked_recently',
-                prompt: 'Have you smoked in the last 24 hours?',
-                type: SLOT_TYPES.YES_NO,
-                onResponse(input) {
-                    if(input === 'no') return 'already_quit';
+                //Ask about whether you primarily smoke or vape. Use answer as context for rest of conversation
+                name: 'vape_or_smoke',
+                prompt: 'Do you primarily smoke or vape?',
+                type: SLOT_TYPES.OPEN_ENDED,
+                useWit: true,
+                onResponse(input, witResponse) {
+                    if(witResponse != null && witResponse.entities != null) {
+                        this.context.smoke_or_vape = 'smoke';
+                        this.context.pod_or_pack = 'pack';
+                        console.log('Got response from Wit API!', JSON.stringify(witResponse));
+                        const {smoke_or_vape} = witResponse.entities;
+                        if (smoke_or_vape != null) {
+                            const response = witResponse.entities.smoke_or_vape[0].value;
+                            console.log('Value:', response);
+                            if(response == 'vape') {
+                                this.context.smoke_or_vape = response;
+                                this.context.pod_or_pack = 'pod';
+                            }
+                        }
+                    }
                 }
             },{
-                name: 'cigs_per_day',
-                prompt: 'How many cigarettes do you smoke per day on average?',
-                type: SLOT_TYPES.NUMBER
+                name: 'date_last_smoked',
+                prompt() { return 'When was the last time you ' + this.context.smoke_or_vape + 'd?' },
+                type: SLOT_TYPES.OPEN_ENDED,
+                useWit: true,
+                onResponse(input, witResponse) {
+                    if (witResponse != null && witResponse.entities != null) {
+                        console.log('Got response from Wit API!', JSON.stringify(witResponse));
+                        const {date_last_smoked} = witResponse.entities;
+                        if (date_last_smoked != null) {
+                            const date = witResponse.entities.date[0].value;
+                            console.log('Value:', date);
+                            this.context.date_last_smoked = date;
+                        }
+                    }
+                    const day_before_yesterday = new Date() - 2;
+                    if(this.context.date_last_smoked <= day_before_yesterday) return "already_quit";
+                }
+            },{
+                name: 'duration_of_pod_or_pack',
+                prompt: 'How long does a single ' + this.context.pod_or_pack + ' usually last for you?',
+                type: SLOT_TYPES.OPEN_ENDED
+                //TODO: implement wit.ai duration
             },{
                 name: 'reason_for_smoking',
                 prompt: 'Here\'s a question you probably weren\'t expecting, why did you start smoking?',
@@ -103,10 +137,6 @@ const SECTIONS = {
         name: 'already_quit',
         questions: [
             {
-                name: 'date_stop_smoking',
-                prompt: "Congratulations on quitting! When did you stop smoking?",
-                type: SLOT_TYPES.OPEN_ENDED, // TODO: Change to date
-            },{
                 name: 'reason_for_quitting',
                 prompt: 'What methods were successful for you?',
                 type: SLOT_TYPES.OPEN_ENDED
