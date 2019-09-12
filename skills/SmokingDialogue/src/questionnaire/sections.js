@@ -23,27 +23,8 @@ const SLOT_TYPES = require('./slot-types');
 
 // List of survey sections.
 const SECTIONS = {
-    // example_wit_usage: {
-    //     name: 'example_wit_usage',
-    //     questions: [
-    //         {
-    //             name: 'example_wit_question',
-    //             prompt: 'This is an example wit question?',
-    //             type: SLOT_TYPES.OPEN_ENDED,
-    //             useWit: true,
-    //             onResponse(input, witResponse) {
-    //                 if (witResponse != null) {
-    //                     console.log('Got response from Wit API!', JSON.stringify(witResponse));
-    //                     if (witResponse.entities.example) {
-    //                         return 'example_state';
-    //                     }
-    //                     return 'other_state';
-    //                 }
-    //             }
-    //         },
-    //     ],
-    //     next: 'other_state'
-    // },
+
+    //gathers information about the user's preferences, recent usage history, and motivation
     motivation: {
         name: 'motivation',
         questions: [
@@ -55,17 +36,15 @@ const SECTIONS = {
                 useWit: true,
                 onResponse(input, witResponse) {
                     if(witResponse != null && witResponse.entities != null) {
+
+                        //Initializes default values for the context smoke_or_vape and pod_or_pack
                         this.context.smoke_or_vape = 'smoke';
-                        this.context.pod_or_pack = 'pack';
                         console.log('Got response from Wit API!', JSON.stringify(witResponse));
                         const {smoke_or_vape} = witResponse.entities;
                         if (smoke_or_vape != null) {
                             const response = witResponse.entities.smoke_or_vape[0].value;
                             console.log('Value:', response);
-                            if(response == 'vape') {
-                                this.context.smoke_or_vape = response;
-                                this.context.pod_or_pack = 'pod';
-                            }
+                            this.context.smoke_or_vape = response;
                         }
                     }
                 }
@@ -84,14 +63,28 @@ const SECTIONS = {
                             this.context.date_last_smoked = date;
                         }
                     }
-                    const day_before_yesterday = new Date() - 2;
+                    const day_before_yesterday = new Date();
+                    day_before_yesterday.setDate(day_before_yesterday.getDate() - 2);
                     if(this.context.date_last_smoked <= day_before_yesterday) return "already_quit";
                 }
             },{
                 name: 'duration_of_pod_or_pack',
-                prompt: 'How long does a single ' + this.context.pod_or_pack + ' usually last for you?',
-                type: SLOT_TYPES.OPEN_ENDED
-                //TODO: implement wit.ai duration
+                prompt() {'How long does a single '
+                    + (this.context.smoke_or_vape === 'vape' ? 'pod' : 'pack')
+                    + ' usually last for you?'},
+                type: SLOT_TYPES.OPEN_ENDED,
+                useWit: true,
+                onResponse(input, witResponse) {
+                    if (witResponse != null && witResponse.entities != null) {
+                        console.log('Got response from Wit API!', JSON.stringify(witResponse));
+                        const {pod_or_pack_duration} = witResponse.entities;
+                        if (pod_or_pack_duration != null) {
+                            const duration = witResponse.entities.date[0].value;
+                            console.log('Value:', duration);
+                            this.context.pod_or_pack_duration = duration;
+                        }
+                    }
+                }
             },{
                 name: 'reason_for_smoking',
                 prompt: 'Here\'s a question you probably weren\'t expecting, why did you start smoking?',
@@ -132,6 +125,7 @@ const SECTIONS = {
         ],
         next: 'healthIssues'
     },
+
     // If the user has already quit. Collects some data on what worked and didn't work in case they relapse.
     already_quit: {
         name: 'already_quit',
@@ -140,13 +134,10 @@ const SECTIONS = {
                 name: 'reason_for_quitting',
                 prompt: 'What methods were successful for you?',
                 type: SLOT_TYPES.OPEN_ENDED
-            }/*,{
-                name: 'end', // TODO: Is there a better way to do this?
-                prompt: 'Free to talk to me again if you are struggling or relapse! I\'ll be here waiting to help you!',
-                type: SLOT_TYPES.OPEN_ENDED
-            }*/
+                //TODO: use wit.ai to match to different types of quitting methods
+            }
         ],
-        next: '' // TODO: End conversation!
+        next: ''
     },
     healthIssues: {
         name: 'healthIssues',
