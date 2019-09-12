@@ -162,8 +162,11 @@ app.setHandler({
             }
 
             const question = questions[questionId];
+            const questionPrompt = typeof question.prompt === 'function'
+                ? question.prompt.call({context})
+                : question.prompt;
+            const nextPrompt = `${prevResponse && prevResponse + '. '|| ''}${questionPrompt}`;
             // Elicit value of appropritate slot based on question type
-            const nextPrompt = `${prevResponse && prevResponse + '. '|| ''}${question.prompt}`;
             this.$alexaSkill.$dialog.elicitSlot(question.type.name, nextPrompt, question.reprompt);
             // Move state to the next question
             this.$session.$data.questionnaireState = {
