@@ -36,7 +36,6 @@ const SECTIONS = {
                 useWit: true,
                 onResponse(input, witResponse) {
                     if(witResponse != null && witResponse.entities != null) {
-
                         //Initializes default values for the context smoke_or_vape and pod_or_pack
                         this.context.smoke_or_vape = 'smoke';
                         console.log('Got response from Wit API!', JSON.stringify(witResponse));
@@ -56,38 +55,51 @@ const SECTIONS = {
                 onResponse(input, witResponse) {
                     if (witResponse != null && witResponse.entities != null) {
                         console.log('Got response from Wit API!', JSON.stringify(witResponse));
-                        const {date_last_smoked} = witResponse.entities;
-                        if (date_last_smoked != null) {
-                            const date = witResponse.entities.date[0].value;
-                            console.log('Value:', date);
+                        const {quit_date} = witResponse.entities;
+                        if (quit_date != null) {
+                            const dateStr = witResponse.entities.quit_date[0].value;
+                            const date = new Date(dateStr);
+                            console.log('Raw date: ', dateStr, ", parsed: ", date);
                             this.context.date_last_smoked = date;
+
+                            const day_before_yesterday = new Date();
+                            day_before_yesterday.setDate(day_before_yesterday.getDate() - 2);
+
+                            if (date.getTime() <= day_before_yesterday.getTime()) {
+                                console.log("Already quit.");
+                                return {
+                                    response: 'Awesome! Sounds like you quit already!', 
+                                    next: "already_quit"
+                                };
+                            }
                         }
                     }
-                    const day_before_yesterday = new Date();
-                    day_before_yesterday.setDate(day_before_yesterday.getDate() - 2);
-                    if(this.context.date_last_smoked <= day_before_yesterday) return "already_quit";
                 }
             },{
                 name: 'duration_of_pod_or_pack',
-                prompt() {'How long does a single '
-                    + (this.context.smoke_or_vape === 'vape' ? 'pod' : 'pack')
-                    + ' usually last for you?'},
+                prompt() { 
+                    return 'How long does a single '
+                        + (this.context.smoke_or_vape === 'vape' ? 'pod' : 'pack')
+                        + ' usually last for you?';
+                },
                 type: SLOT_TYPES.OPEN_ENDED,
                 useWit: true,
                 onResponse(input, witResponse) {
                     if (witResponse != null && witResponse.entities != null) {
                         console.log('Got response from Wit API!', JSON.stringify(witResponse));
-                        const {pod_or_pack_duration} = witResponse.entities;
-                        if (pod_or_pack_duration != null) {
-                            const duration = witResponse.entities.date[0].value;
-                            console.log('Value:', duration);
-                            this.context.pod_or_pack_duration = duration;
+                        const {duration} = witResponse.entities;
+                        if (duration != null) {
+                            // Normalized duration value is in seconds
+                            this.context.pod_or_pack_duration_sec = duration[0].normalized.value;
                         }
                     }
                 }
             },{
                 name: 'reason_for_smoking',
-                prompt: 'Here\'s a question you probably weren\'t expecting, why did you start smoking?',
+                prompt() {
+                    return 'Here\'s a question you probably weren\'t expecting, what made you start '
+                        + (this.context.smoke_or_vape === 'vape' ? 'vaping' : 'smoking') + '?';
+                },
                 type: SLOT_TYPES.OPEN_ENDED,
                 useWit: true,
                 onResponse(input, witResponse) {
@@ -127,6 +139,7 @@ const SECTIONS = {
     },
 
     // If the user has already quit. Collects some data on what worked and didn't work in case they relapse.
+    // TODO Coaching
     already_quit: {
         name: 'already_quit',
         questions: [
