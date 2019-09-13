@@ -9,7 +9,11 @@
     "jovo-platform-alexa": "^2.0.2",
     "jovo-platform-googleassistant": "^2.0.2",
     "jovo-plugin-debugger": "^2.0.2",
+<<<<<<< HEAD
     "latest-version": "^5.1.0"
+=======
+    "node-wit": "^5.0.0"
+>>>>>>> 14988504726af2c07b2f9b30cd7745d078aafcd3
   },
   "devDependencies": {
     "gulp": "^4.0.0",

@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "165744321737",
+    "firebase_url": "https://collegebuddygroupchat.firebaseio.com",
+    "project_id": "collegebuddygroupchat",
+    "storage_bucket": "collegebuddygroupchat.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:165744321737:android:b04c078204e1eb2b",
+        "android_client_info": {
+          "package_name": "edu.lehigh.cse280_lkby.groupchatapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "165744321737-k2k1qe0imjohlalt8fqt4pnnan2q2c5n.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAg-Z7xpobx85Vme2NaxYlInaeIxW9iYPw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "165744321737-k2k1qe0imjohlalt8fqt4pnnan2q2c5n.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
