@@ -23,9 +23,93 @@ const SLOT_TYPES = require('./slot-types');
 
 // List of survey sections.
 const SECTIONS = {
+    // Decide which section to run first.
     __main__() {
-        // TODO choose section based on this.userData
-        return 'motivation';
+        let {quitDate} = this.userData;
+        if (!quitDate) {
+            return 'onboarding';
+        }
+
+        // Convert quitDate to Date if it is not already
+        if (typeof quitDate === 'string') {
+            quitDate = new Date(quitDate);
+        }
+
+        // Check if quit date has passed
+        if (Date.now() > quitDate.getTime()) {
+            return 'quit_date_passed';
+        }
+
+        return 'quit_date_upcoming';
+    },
+
+    onboarding: {
+        name: 'onboarding',
+        questions: [
+            {
+                // TODO more onboarding questions
+                name: 'quit_date',
+                prompt: 'What is your quit date?',
+                type: SLOT_TYPES.OPEN_ENDED,
+                useWit: true,
+                onResponse(input, witResponse) {
+                    const errorResponse = { response: 'Sorry, I didn\'t understand that.', next: 'onboarding' };
+                    if (witResponse == null || witResponse.entities == null) {
+                        return errorResponse;
+                    }
+                    console.log('Got response from Wit API!', JSON.stringify(witResponse));
+
+                    const {quit_date} = witResponse.entities;
+                    if (quit_date == null) {
+                        return errorResponse;
+                    }
+
+                    const dateStr = quit_date[0].value;
+                    if (quit_date == null) {
+                        return errorResponse;
+                    }
+
+                    const date = new Date(dateStr);
+                    console.log('Raw date: ', dateStr, ", parsed: ", date);
+                    if (date.getTime() <= Date.now()) {
+                        return {
+                            response: 'Sorry, I think that date is in the past.',
+                            next: 'onboarding',
+                        }
+                    }
+
+                    this.context.quitDate = date;
+                    this.userData.quitDate = date;
+                }
+            }
+        ],
+        // next: null
+    },
+
+    quit_date_passed: {
+        name: 'quit_date_passed',
+        questions: [
+            {
+                // TODO quit_date_passed questions
+                name: 'todo',
+                prompt: 'TODO: Quit date passed questions.',
+                type: SLOT_TYPES.OPEN_ENDED,
+            }
+        ],
+        // next: null
+    },
+
+    quit_date_upcoming: {
+        name: 'quit_date_upcoming',
+        questions: [
+            {
+                // TODO quit_date_upcoming questions
+                name: 'todo',
+                prompt: 'TODO: Quit date upcoming questions.',
+                type: SLOT_TYPES.OPEN_ENDED,
+            },
+        ],
+        // next: null,
     },
 
     //gathers information about the user's preferences, recent usage history, and motivation
