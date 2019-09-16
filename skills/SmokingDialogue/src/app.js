@@ -47,13 +47,7 @@ app.setHandler({
         async SurveyQuestionIntent() {
             // If we haven't yet begun the questionnaire
             if (!this.$session.$data.questionnaireState) {
-                console.log("New questionnaire session created.");
-
-                this.$session.$data.questionnaireState = { 
-                    context: {},
-                    sectionId: SECTIONS.__main__,
-                    questionId: 0
-                };
+                console.log("Starting new questionnaire session");
 
                 // back-up old questionnaire responses (if they exist)
                 if (this.$user.$data.questionnaire) {
@@ -83,6 +77,22 @@ app.setHandler({
                 this.$user.$data.qUserData = {
                     ...(oldQUserData || ({})),
                     __start_time__: curTime
+                };
+
+                // Initialize session context
+                const context = {};
+                const thisArg = { context, userData: this.$user.$data.qUserData };
+
+                // Get the main section
+                const mainSection = typeof SECTIONS.__main__ === 'function' 
+                    ? SECTIONS.__main__.call(thisArg)
+                    : SECTIONS.__main__;
+
+                // Initialize the new questionnaire session
+                this.$session.$data.questionnaireState = { 
+                    context,
+                    sectionId: mainSection,
+                    questionId: 0
                 };
             }
 

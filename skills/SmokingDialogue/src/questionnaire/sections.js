@@ -23,6 +23,10 @@ const SLOT_TYPES = require('./slot-types');
 
 // List of survey sections.
 const SECTIONS = {
+    __main__() {
+        // TODO choose section based on this.userData
+        return 'motivation';
+    },
 
     //gathers information about the user's preferences, recent usage history, and motivation
     motivation: {
@@ -305,7 +309,6 @@ const SECTIONS = {
         ],
         next: '' // TODO
     },
-    __main__: 'motivation',
     __version__: '1',
 };
 
