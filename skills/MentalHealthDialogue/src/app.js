@@ -47,8 +47,7 @@ app.setHandler({
         async SurveyQuestionIntent() {
             // If we haven't yet begun the questionnaire
             if (!this.$session.$data.questionnaireState) {
-                console.log("New questionnaire session created.");
-                this.$session.$data.questionnaireState = { sectionId: SECTIONS.__main__, questionId: 0 };
+                console.log("Starting new questionnaire session");
 
                 // back-up old questionnaire responses (if they exist)
                 if (this.$user.$data.questionnaire) {
@@ -58,23 +57,68 @@ app.setHandler({
                     this.$user.$data.previousResponses.push(this.$user.$data.questionnaire);
                 }
 
+                const curTime = (new Date()).toISOString();
+
                 // create new questionnaire state in database
                 this.$user.$data.questionnaire = {
-                    __start_time__: (new Date()).toISOString()
+                    __start_time__: curTime
+                };
+
+                // Back up old persistent userData, if exists
+                const oldQUserData = this.$user.$data.qUserData;
+                if (oldQUserData) {
+                    if (!this.$user.$data.prevQUserData) {
+                        this.$user.$data.prevQUserData = [];
+                    }
+                    this.$user.$data.prevQUserData.push(oldQUserData);
+                }
+
+                // Initialize new persistent user data for questionnaire
+                this.$user.$data.qUserData = {
+                    ...(oldQUserData || ({})),
+                    __start_time__: curTime
+                };
+
+                // Initialize session context
+                const context = {};
+                const thisArg = { context, userData: this.$user.$data.qUserData };
+
+                // Get the main section
+                const mainSection = typeof SECTIONS.__main__ === 'function' 
+                    ? SECTIONS.__main__.call(thisArg)
+                    : SECTIONS.__main__;
+
+                // Initialize the new questionnaire session
+                this.$session.$data.questionnaireState = { 
+                    context,
+                    sectionId: mainSection,
+                    questionId: 0
                 };
             }
 
-            const { sectionId, questionId } = this.$session.$data.questionnaireState;
-            const section = SECTIONS[sectionId];
+            const { qUserData } = this.$user.$data;
+            const { context, prevResponse, sectionId, questionId } = this.$session.$data.questionnaireState;
+            
+            // Initialize the "this" arg passed to prompt and response handlers
+            const thisArg = { context, userData: qUserData };
 
-            if (!this.$user.$data.questionnaire[sectionId]) {
-                this.$user.$data.questionnaire[sectionId] = {};
+            // Reset the prev response if it exists
+            if (prevResponse != null) {
+                this.$session.$data.prevResponse = null;
             }
 
+            const section = SECTIONS[sectionId];
+
+            // Crash if section does not exist
             if (!section) {
                 console.error('Failed to find section with id', sectionId);
-                this.tell('Sorry, there was an issue loading the questionnaire.');
+                this.tell('Sorry, an error occurred. Let\'s try talking again soon.');
                 return;
+            }
+
+            // Initialize questionnarie section data
+            if (!this.$user.$data.questionnaire[sectionId]) {
+                this.$user.$data.questionnaire[sectionId] = {};
             }
             
             const { questions } = section;
@@ -103,43 +147,62 @@ app.setHandler({
                         // Get the Wit response for the given input string
                         // TODO: pass context such as time zone, possibly maintain state
                         witResponse = await witClient.message(lastAnswer, {});
+                        this.$user.$data.questionnaire[section.name][lastQuestion.name + "$wit"] = witResponse;
                     } catch (e) {
                         console.error('Wit API error:', e);
                     }
                 }
 
                 // Call the questions onResponse handler
-                const redirectTo = lastQuestion.onResponse && lastQuestion.onResponse(lastAnswer, witResponse);
+                if (lastQuestion.onResponse != null) {
+                    const responseResult = lastQuestion.onResponse.call(thisArg, lastAnswer, witResponse);
 
-                // If the response handler returned a section name, redirect to it
-                if (typeof redirectTo === 'string') {
-                    this.$session.$data.questionnaireState = { sectionId: redirectTo, questionId: 0 };
-                    return this.toStateIntent("TakingQuestionnaire", "SurveyQuestionIntent");
+                    this.$session.$data.questionnaireState.prevResponse = responseResult && responseResult.response || null;
+
+                    // If the response handler returned a section name, redirect to it
+                    const redirectTo = typeof responseResult === 'string' ? responseResult : (responseResult && responseResult.next);
+                    if (typeof redirectTo === 'string') {
+                        this.$session.$data.questionnaireState.sectionId = redirectTo;
+                        this.$session.$data.questionnaireState.questionId = 0;
+                        return this.toStateIntent("TakingQuestionnaire", "SurveyQuestionIntent");
+                    }
                 }
             }
 
             // If we are out of questions in this section, then the section is complete.
             if (!questions[questionId]) {
-                // 
                 const {next} = section;
                 if (!next) {
                     // If there is not a 'next' section, questionnaire is over.
-                    this.tell(CONFIG.completed);
+                    const finalMessage = `${prevResponse && prevResponse + '. ' || ''}${CONFIG.completed}`;
+                    this.tell(finalMessage);
                     this.$user.$data.questionnaire.__finished__ = true;
                     return;
                 }
 
                 // If there is a next session, jump to that.
-                this.$session.$data.questionnaireState = { sectionId: next, questionId: 0 };
+                this.$session.$data.questionnaireState.sectionId = next;
+                this.$session.$data.questionnaireState.questionId = 0;
+
                 // Re-run current intent with new questionnaire state.
                 return this.toStateIntent("TakingQuestionnaire", "SurveyQuestionIntent");
             }
 
             const question = questions[questionId];
+
+            // The prompt for this question
+            const questionPrompt = typeof question.prompt === 'function'
+                ? question.prompt.call(thisArg)
+                : question.prompt;
+
+            // The previous response (if given) plus the prompt for this question.
+            const nextPrompt = `${prevResponse ? prevResponse + '. ' : ''}${questionPrompt}`;
+
             // Elicit value of appropritate slot based on question type
-            this.$alexaSkill.$dialog.elicitSlot(question.type.name, question.prompt, question.reprompt);
+            this.$alexaSkill.$dialog.elicitSlot(question.type.name, nextPrompt, question.reprompt);
+
             // Move state to the next question
-            this.$session.$data.questionnaireState= { sectionId, questionId: questionId + 1 };
+            this.$session.$data.questionnaireState.questionId++;
         }
     },
     
