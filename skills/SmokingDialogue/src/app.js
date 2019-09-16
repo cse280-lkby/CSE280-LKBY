@@ -48,7 +48,12 @@ app.setHandler({
             // If we haven't yet begun the questionnaire
             if (!this.$session.$data.questionnaireState) {
                 console.log("New questionnaire session created.");
-                this.$session.$data.questionnaireState = { context: {}, sectionId: SECTIONS.__main__, questionId: 0 };
+
+                this.$session.$data.questionnaireState = { 
+                    context: {},
+                    sectionId: SECTIONS.__main__,
+                    questionId: 0
+                };
 
                 // back-up old questionnaire responses (if they exist)
                 if (this.$user.$data.questionnaire) {
@@ -58,32 +63,52 @@ app.setHandler({
                     this.$user.$data.previousResponses.push(this.$user.$data.questionnaire);
                 }
 
+                const curTime = (new Date()).toISOString();
+
                 // create new questionnaire state in database
                 this.$user.$data.questionnaire = {
-                    __start_time__: (new Date()).toISOString()
+                    __start_time__: curTime
+                };
+
+                // Back up old persistent userData, if exists
+                const oldQUserData = this.$user.$data.qUserData;
+                if (oldQUserData) {
+                    if (!this.$user.$data.prevQUserData) {
+                        this.$user.$data.prevQUserData = [];
+                    }
+                    this.$user.$data.prevQUserData.push(oldQUserData);
+                }
+
+                // Initialize new persistent user data for questionnaire
+                this.$user.$data.qUserData = {
+                    ...(oldQUserData || ({})),
+                    __start_time__: curTime
                 };
             }
 
+            const { qUserData } = this.$user.$data;
             const { context, prevResponse, sectionId, questionId } = this.$session.$data.questionnaireState;
+            
+            // Initialize the "this" arg passed to prompt and response handlers
+            const thisArg = { context, userData: qUserData };
 
             // Reset the prev response if it exists
-            if (prevResponse) {
-                this.$session.$data.questionnaireState = {
-                    ...this.$session.$data.questionnaireState,
-                    prevResponse: null,
-                };
+            if (prevResponse != null) {
+                this.$session.$data.prevResponse = null;
             }
 
             const section = SECTIONS[sectionId];
 
-            if (!this.$user.$data.questionnaire[sectionId]) {
-                this.$user.$data.questionnaire[sectionId] = {};
-            }
-
+            // Crash if section does not exist
             if (!section) {
                 console.error('Failed to find section with id', sectionId);
-                this.tell('Sorry, there was an issue loading the questionnaire.');
+                this.tell('Sorry, an error occurred. Let\'s try talking again soon.');
                 return;
+            }
+
+            // Initialize questionnarie section data
+            if (!this.$user.$data.questionnaire[sectionId]) {
+                this.$user.$data.questionnaire[sectionId] = {};
             }
             
             const { questions } = section;
@@ -120,22 +145,15 @@ app.setHandler({
 
                 // Call the questions onResponse handler
                 if (lastQuestion.onResponse != null) {
-                    const thisArg = { context };
                     const responseResult = lastQuestion.onResponse.call(thisArg, lastAnswer, witResponse);
 
-                    this.$session.$data.questionnaireState = {
-                        ...this.$session.$data.questionnaireState,
-                        prevResponse: responseResult && responseResult.response,
-                    };
+                    this.$session.$data.questionnaireState.prevResponse = responseResult && responseResult.response || null;
 
                     // If the response handler returned a section name, redirect to it
                     const redirectTo = typeof responseResult === 'string' ? responseResult : (responseResult && responseResult.next);
                     if (typeof redirectTo === 'string') {
-                        this.$session.$data.questionnaireState = {
-                            ...this.$session.$data.questionnaireState,
-                            sectionId: redirectTo,
-                            questionId: 0,
-                        };
+                        this.$session.$data.questionnaireState.sectionId = redirectTo;
+                        this.$session.$data.questionnaireState.questionId = 0;
                         return this.toStateIntent("TakingQuestionnaire", "SurveyQuestionIntent");
                     }
                 }
@@ -153,28 +171,28 @@ app.setHandler({
                 }
 
                 // If there is a next session, jump to that.
-                this.$session.$data.questionnaireState = {
-                    ...this.$session.$data.questionnaireState,
-                    sectionId: next,
-                    questionId: 0
-                };
+                this.$session.$data.questionnaireState.sectionId = next;
+                this.$session.$data.questionnaireState.questionId = 0;
+
                 // Re-run current intent with new questionnaire state.
                 return this.toStateIntent("TakingQuestionnaire", "SurveyQuestionIntent");
             }
 
             const question = questions[questionId];
+
+            // The prompt for this question
             const questionPrompt = typeof question.prompt === 'function'
-                ? question.prompt.call({context})
+                ? question.prompt.call(thisArg)
                 : question.prompt;
-            const nextPrompt = `${prevResponse && prevResponse + '. '|| ''}${questionPrompt}`;
+
+            // The previous response (if given) plus the prompt for this question.
+            const nextPrompt = `${prevResponse ? prevResponse + '. ' : ''}${questionPrompt}`;
+
             // Elicit value of appropritate slot based on question type
             this.$alexaSkill.$dialog.elicitSlot(question.type.name, nextPrompt, question.reprompt);
+
             // Move state to the next question
-            this.$session.$data.questionnaireState = {
-                ...this.$session.$data.questionnaireState,
-                sectionId,
-                questionId: questionId + 1 
-            };
+            this.$session.$data.questionnaireState.questionId++;
         }
     },
     
