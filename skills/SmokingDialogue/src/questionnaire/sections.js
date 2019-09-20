@@ -47,9 +47,121 @@ const SECTIONS = {
         name: 'onboarding',
         questions: [
             {
-                // TODO more onboarding questions
+                //Ask about whether you primarily smoke or vape. Use answer as context for rest of conversation
+                name: 'vape_or_smoke',
+                prompt: 'To start off, I\'d like to learn more about you. Do you primarily smoke or vape?',
+                type: SLOT_TYPES.OPEN_ENDED,
+                useWit: true,
+                onResponse(input, witResponse) {
+                    if(witResponse != null && witResponse.entities != null) {
+                        //Initializes default values for the context smoke_or_vape and pod_or_pack
+                        this.context.smoke_or_vape = 'smoke';
+                        console.log('Got response from Wit API!', JSON.stringify(witResponse));
+                        const {smoke_or_vape} = witResponse.entities;
+                        if (smoke_or_vape != null) {
+                            const response = witResponse.entities.smoke_or_vape[0].value;
+                            console.log('Value:', response);
+                            this.context.smoke_or_vape = response;
+                        }
+                    }
+                }
+            },{
+                name: 'date_last_smoked',
+                prompt() { return 'When was the last time you ' + this.context.smoke_or_vape + 'd?' },
+                type: SLOT_TYPES.OPEN_ENDED,
+                useWit: true,
+                onResponse(input, witResponse) {
+                    if (witResponse != null && witResponse.entities != null) {
+                        console.log('Got response from Wit API!', JSON.stringify(witResponse));
+                        const {quit_date} = witResponse.entities;
+                        if (quit_date != null) {
+                            const dateStr = witResponse.entities.quit_date[0].value;
+                            const date = new Date(dateStr);
+                            console.log('Raw date: ', dateStr, ", parsed: ", date);
+                            this.context.date_last_smoked = date;
+
+                            const day_before_yesterday = new Date();
+                            day_before_yesterday.setDate(day_before_yesterday.getDate() - 2);
+
+                            if (date.getTime() <= day_before_yesterday.getTime()) {
+                                console.log("Already quit.");
+                                return {
+                                    response: 'Awesome! Sounds like you quit already!', 
+                                    next: "already_quit"
+                                };
+                            }
+                        }
+                    }
+                }
+            },{
+                name: 'duration_of_pod_or_pack',
+                prompt() { 
+                    return 'How long does a single '
+                        + (this.context.smoke_or_vape === 'vape' ? 'pod' : 'pack')
+                        + ' usually last for you?';
+                },
+                type: SLOT_TYPES.OPEN_ENDED,
+                useWit: true,
+                onResponse(input, witResponse) {
+                    if (witResponse != null && witResponse.entities != null) {
+                        console.log('Got response from Wit API!', JSON.stringify(witResponse));
+                        const {duration} = witResponse.entities;
+                        if (duration != null) {
+                            // Normalized duration value is in seconds
+                            this.context.pod_or_pack_duration_sec = duration[0].normalized.value;
+                        }
+                    }
+                }
+            },{
+                name: 'reason_for_smoking',
+                prompt() {
+                    return 'Here\'s a question you probably weren\'t expecting, what made you start '
+                        + (this.context.smoke_or_vape === 'vape' ? 'vaping' : 'smoking') + '?';
+                },
+                type: SLOT_TYPES.OPEN_ENDED,
+                useWit: true,
+                onResponse(input, witResponse) {
+                    this.context.reason_for_smoking = "you wanted to.";
+                    if (witResponse != null && witResponse.entities != null) {
+                        console.log('Got response from Wit API!', JSON.stringify(witResponse));
+                        const {reasons_for_smoking} = witResponse.entities;
+                        if (reasons_for_smoking != null) {
+                            const reason = witResponse.entities.reasons_for_smoking[0].value;
+                            console.log('Value:', reason);
+                            this.context.reason_for_smoking = reason;
+                        }
+                    }
+                }
+            },{
+                name: 'reason_for_quitting',
+                prompt: 'I\'m wondering if a recent event inspired you to quit. What are your main reasons for quitting now?',
+                type: SLOT_TYPES.OPEN_ENDED,
+                useWit: true,
+                onResponse(input, witResponse) {
+                    this.context.reason_for_quitting = "you wanted to.";
+                    if (witResponse != null && witResponse.entities != null) {
+                        console.log('Got response from Wit API!', JSON.stringify(witResponse));
+                        const {reasons_for_quitting} = witResponse.entities;
+                        if (reasons_for_quitting != null) {
+                            const reason = witResponse.entities.reasons_for_quitting[0].value;
+                            console.log('Value:', reason);
+                            this.context.reason_for_quitting = reason;
+                        }
+                    }
+                    return {response: 'I see that you started smoking because of ' + this.context.reason_for_smoking +
+                        '. You want to quit smoking because of ' + this.context.reason_for_quitting, next: 'healthIssues'};
+                }
+            },
+        ],
+        next: this.set_quit_date
+    },
+
+    set_quit_date: {
+        name: 'set_quit_date',
+        questions: [
+            {
                 name: 'quit_date',
-                prompt: 'What is your quit date?',
+                prompt: 'By which date would you like to quit?',
                 type: SLOT_TYPES.OPEN_ENDED,
                 useWit: true,
                 onResponse(input, witResponse) {
@@ -83,7 +195,7 @@ const SECTIONS = {
                 }
             }
         ],
-        // next: null
+        next: ''
     },
 
     quit_date_passed: {
@@ -91,9 +203,9 @@ const SECTIONS = {
         questions: [
             {
                 // TODO quit_date_passed questions
-                name: 'todo',
-                prompt: 'TODO: Quit date passed questions.',
-                type: SLOT_TYPES.OPEN_ENDED,
+                name: 'quit_date_passed',
+                prompt: 'Hey, how did your quit attempt go?',
+                type: SLOT_TYPES.OPEN_ENDED, //TODO: use wit.ai to parse out different "slots" of data to form a response
             }
         ],
         // next: null
@@ -103,17 +215,61 @@ const SECTIONS = {
         name: 'quit_date_upcoming',
         questions: [
             {
-                // TODO quit_date_upcoming questions
-                name: 'todo',
-                prompt: 'TODO: Quit date upcoming questions.',
-                type: SLOT_TYPES.OPEN_ENDED,
+                name: 'quit_date_upcoming_emotion',
+                prompt: 'Hey, it looks like your quit date is coming up soon. How are you feeling about it?',
+                type: SLOT_TYPES.OPEN_ENDED, //TODO: make a empathetic response with wit.ai
             },
         ],
-        // next: null,
+        next: quitting_aids,
+    },
+    quitting_aids: { // TODO: How to implement allowing users to ask for more info on different methods?
+        name: 'quitting_aids',
+        questions: [
+            {
+                name: 'has_method_to_try', //TODO: use wit.ai to parse out specific methods (or a no response) and act accordingly
+                prompt: 'Now let’s talk about what method you want to use to quit. Some people like to use ' +
+                'a quit aid (like gum, patches or medication) and others prefer to quit cold turkey. Have you ' +
+                'thought about what method you would like to use to quit? If so, what quitting aid would you like to use?',
+                type: SLOT_TYPES.OPEN_ENDED,
+            }
+        ],
+        next: 'planning'
+    },
+    // Helper for when user responds that they know which method they want to use
+    /*quitting_aids_helper: { //TODO: reformat back into quitting_aids (possible?)
+        name: 'quitting_aids_helper',
+        questions: [
+            {
+                name: 'quitting_aid',
+                prompt: 'What quitting aid would you like to use?',
+                type: SLOT_TYPES.OPEN_ENDED
+            }
+        ],
+        next: 'planning'
+    },*/
+    planning: {
+        name: 'planning',
+        questions: [
+            {
+                name: 'first_top_trigger',
+                // TODO: Can this be customized to list *what the client likes about smoking*
+                prompt: 'Let\'s do some plannning for the situations where you usually smoke. What is your top trigger?',
+                type: SLOT_TYPES.OPEN_ENDED
+            },{
+                name: 'second_top_trigger',
+                prompt: 'What is your second top trigger?',
+                type: SLOT_TYPES.OPEN_ENDED
+            },{
+                name: 'third_top_trigger',
+                prompt: 'What is your third top trigger?',
+                type: SLOT_TYPES.OPEN_ENDED
+            }
+        ],
+        next: ''
     },
 
     //gathers information about the user's preferences, recent usage history, and motivation
-    motivation: {
+    /*motivation: {
         name: 'motivation',
         questions: [
             {
@@ -224,7 +380,7 @@ const SECTIONS = {
             },
         ],
         next: 'healthIssues'
-    },
+    },*/
 
     // If the user has already quit. Collects some data on what worked and didn't work in case they relapse.
     // TODO Coaching
@@ -240,7 +396,7 @@ const SECTIONS = {
         ],
         next: ''
     },
-    healthIssues: {
+    /*healthIssues: {
         name: 'healthIssues',
         questions: [
             {
@@ -346,53 +502,7 @@ const SECTIONS = {
             },
         ],
         next: 'quitting_aids'
-    },
-    quitting_aids: { // TODO: How to implement allowing users to ask for more info on different methods?
-        name: 'quitting_aids',
-        questions: [
-            {
-                name: 'has_method_to_try',
-                prompt: 'Now let’s talk about what method you want to use to quit. Some people like to use a quit aid (like gum, patches or medication) and others prefer to quit cold turkey. Have you thought about what method you would like to use to quit? Please answer yes or no.',
-                type: SLOT_TYPES.YES_NO,
-                onResponse(input) {
-                    if(input === 'yes') return 'quitting_aids_helper';
-                }
-            } // NOT DONE
-        ],
-        next: 'planning'
-    },
-    // Helper for when user responds that they know which method they want to use
-    quitting_aids_helper: { //TODO: reformat back into quitting_aids (possible?)
-        name: 'quitting_aids_helper',
-        questions: [
-            {
-                name: 'quitting_aid',
-                prompt: 'What quitting aid would you like to use?',
-                type: SLOT_TYPES.OPEN_ENDED
-            }
-        ],
-        next: 'planning'
-    },
-    planning: {
-        name: 'planning',
-        questions: [
-            {
-                name: 'first_top_trigger',
-                // TODO: Can this be customized to list *what the client likes about smoking*
-                prompt: 'Let\'s do some plannning for the situations where you usually smoke. What is your top trigger?',
-                type: SLOT_TYPES.OPEN_ENDED
-            },{
-                name: 'second_top_trigger',
-                prompt: 'What is your second top trigger?',
-                type: SLOT_TYPES.OPEN_ENDED
-            },{
-                name: 'third_top_trigger',
-                prompt: 'What is your third top trigger?',
-                type: SLOT_TYPES.OPEN_ENDED
-            }
-        ],
-        next: '' // TODO
-    },
+    },*/
     __version__: '1',
 };
 
