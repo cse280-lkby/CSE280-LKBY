@@ -153,7 +153,7 @@ const SECTIONS = {
                 }
             },
         ],
-        next: this.set_quit_date
+        next: set_quit_date
     },
 
     set_quit_date: {
@@ -165,7 +165,7 @@ const SECTIONS = {
                 type: SLOT_TYPES.OPEN_ENDED,
                 useWit: true,
                 onResponse(input, witResponse) {
-                    const errorResponse = { response: 'Sorry, I didn\'t understand that.', next: 'onboarding' };
+                    const errorResponse = { response: 'Sorry, I didn\'t understand that.', next: 'set_quit_date' };
                     if (witResponse == null || witResponse.entities == null) {
                         return errorResponse;
                     }
@@ -186,7 +186,7 @@ const SECTIONS = {
                     if (date.getTime() <= Date.now()) {
                         return {
                             response: 'Sorry, I think that date is in the past.',
-                            next: 'onboarding',
+                            next: 'set_quit_date',
                         }
                     }
 
@@ -206,6 +206,7 @@ const SECTIONS = {
                 name: 'quit_date_passed',
                 prompt: 'Hey, how did your quit attempt go?',
                 type: SLOT_TYPES.OPEN_ENDED, //TODO: use wit.ai to parse out different "slots" of data to form a response
+                //Ask different questions depending on whether the user succeeded or not
             }
         ],
         // next: null
