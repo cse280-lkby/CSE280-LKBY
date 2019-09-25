@@ -135,13 +135,12 @@ app.setHandler({
                     this.$alexaSkill.$dialog.elicitSlot(type.name, repromptStr);
                     return;
                 }
-
-                // Save the answer since it is valid.
+                
                 console.log(`Response to last question '${lastQuestion.name}' was '${lastAnswer}'.`);
-                this.$user.$data.questionnaire[section.name][lastQuestion.name] = lastAnswer;
 
                 // Send response to Wit API, if needed
-                let witResponse = null;
+                let witResponse;
+                let nluLog;
                 if (lastQuestion.useWit) {
                     try {
                         // Get the Wit response for the given input string
@@ -152,6 +151,15 @@ app.setHandler({
                         console.error('Wit API error:', e);
                     }
                 }
+
+                
+
+                // Save the answer since it is valid.
+                this.$user.$data.questionnaire[section.name][lastQuestion.name] = {
+                    answer: lastAnswer,
+                    nlu: nluLog
+                };
+
 
                 // Call the questions onResponse handler
                 if (lastQuestion.onResponse != null) {
