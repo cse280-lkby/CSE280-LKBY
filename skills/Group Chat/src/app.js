@@ -28,7 +28,7 @@ admin.initializeApp({
   databaseURL: "https://collegebuddygroupchat.firebaseio.com"
 });
 
-const HARDCODED_DEMO_FCM_TOKEN = 'fFzM2-Eg-9M:APA91bHckzVZv68oUUTRFenOyTenww8zZBX5x6GLEUebz6qMlbGGyg9EqBKi4OconzMI1kPj_v2wquIaz7KvsnIBZDJgRvI-W4E2C-skYx2c9yfP79lfrqUMNjd9vdJP6mskjyFrVC05';
+const HARDCODED_DEMO_FCM_TOKEN = 'cgyxXJzU7pQ:APA91bHC_GeWVpTJYeua3dZhhazXxpXcuCPxPfCXNZXcVDf5BO-jrAlnzyccU1mAAB5PdcWHHscs68xFuSw5fMwqyHCxFRBsAey9aGfmtniieID2uCJkf4YKx_a66nDjmfSAJ17IJURt';
 const HARDCODED_DEMO_NOTIFICATION = {
     notification: {
         title: 'My Support Group',
