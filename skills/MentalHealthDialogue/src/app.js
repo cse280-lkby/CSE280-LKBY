@@ -91,22 +91,41 @@ app.setHandler({
                     this.$alexaSkill.$dialog.elicitSlot(type.name, repromptStr);
                     return;
                 }
-
-                // Save the answer since it is valid.
+                
                 console.log(`Response to last question '${lastQuestion.name}' was '${lastAnswer}'.`);
-                this.$user.$data.questionnaire[section.name][lastQuestion.name] = lastAnswer;
 
                 // Send response to Wit API, if needed
-                let witResponse = null;
+                let witResponse;
+                let nluLog;
                 if (lastQuestion.useWit) {
                     try {
                         // Get the Wit response for the given input string
                         // TODO: pass context such as time zone, possibly maintain state
                         witResponse = await witClient.message(lastAnswer, {});
+
+                        if (witResponse && witResponse.entities) {
+                            nluLog = [];
+                            for (let entity in witResponse.entities) {
+                                console.log(entity);
+                                nluLog.push({
+                                    entity,
+                                    confidence: witResponse.entities[entity][0].confidence
+                                });
+                            }
+                        }
                     } catch (e) {
                         console.error('Wit API error:', e);
                     }
                 }
+
+                
+
+                // Save the answer since it is valid.
+                this.$user.$data.questionnaire[section.name][lastQuestion.name] = {
+                    answer: lastAnswer,
+                    nlu: nluLog
+                };
+
 
                 // Call the questions onResponse handler
                 const redirectTo = lastQuestion.onResponse && lastQuestion.onResponse(lastAnswer, witResponse);

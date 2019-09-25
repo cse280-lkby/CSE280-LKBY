@@ -61,7 +61,7 @@ const SECTIONS = {
                         else if (witResponse.entities.time_management) {
                             return 'tempTimeManagement';
                         }
-                        return 'tempPositive';
+                        return 'contactCenter';
                     }
                 }
             },
@@ -82,12 +82,26 @@ const SECTIONS = {
         ],
         next: null
     },
+    contactCenter: {
+        name: 'contactCenter',
+        questions: [
+            {
+                name: 'contact',
+                prompt: 'I am sorry you feel this way, would you like to contact the counseling center? The number is 6 1 0 7 5 8 3 8 8 0.',
+                type: SLOT_TYPES.OPEN_ENDED,
+                onResponse(input) {
+                    return 'check_in'      ;              
+                }
+            },
+        ],
+        next: null
+    },
     tempExam: {
         name: 'tempExam',
         questions: [
             {
                 name: 'exam',
-                prompt: 'Good resources to consider when struggling with test anxiety or test performance are tutors and '
+                prompt: 'Exams are naturally a stressful event. Good resources to consider when struggling with test anxiety or test performance are tutors and '
                 + 'the center for academic success.',
                 /*prompt: 'Test anxiety is a very common problem among students, so know that you\'re not alone. '
                 + 'Good resources to consider when struggling with test anxiety or test performance are tutors and '
@@ -95,7 +109,7 @@ const SECTIONS = {
                 + 'Those resources will help you to manage your time and help you understand the material prior to your exams. ',*/
                 type: SLOT_TYPES.OPEN_ENDED,
                 onResponse(input) {
-                    return 'check_in'      ;              
+                    return 'ending'      ;              
                 }
             },
         ],
@@ -106,14 +120,14 @@ const SECTIONS = {
         questions: [
             {
                 name: 'course_materials',
-                prompt: 'A few things that students find helpful when they don\'t understand material are finding a tutor, '
+                prompt: 'College course are a challenge! A few things that students find helpful when they don\'t understand material are finding a tutor, '
                 + 'attending office hours, and finding a group of classmates to study with.',
                 /*prompt: 'Not understanding content is a common issue, the courses are supposed to be challenging. '
                 + 'A few things that students find helpful when they don\'t understand material, are finding a tutor, '
                 + 'attending office hours, and finding a group of classmates to study with.',*/
                 type: SLOT_TYPES.OPEN_ENDED,
                 onResponse(input) {
-                    return 'check_in'      ;              
+                    return 'ending'      ;              
                 }
             },
         ],
@@ -124,7 +138,8 @@ const SECTIONS = {
         questions: [
             {
                 name: 'time_management',
-                prompt: 'In order to keep track of everything you need to accomplish try to '
+                prompt: 'Managing time well is one of the best skills a student can develop.'
+                + ' In order to keep track of everything you need to accomplish try to '
                 + ' create a planner for yourself and prioritize a list of things '
                 + ' that you need to do. Make the list as specific as possible.',
                 /*prompt: 'Managing your time is one of the most difficult aspects of college. In order to keep track of '
@@ -133,7 +148,8 @@ const SECTIONS = {
                 + ' that must be done down on paper, the list seems more manageable than it was in your head.',*/
                 type: SLOT_TYPES.OPEN_ENDED,
                 onResponse(input) {
-                    return 'check_in'      ;              
+                    //return 'check_in' 
+                    return 'ending'     ;              
                 }
             },
         ],
