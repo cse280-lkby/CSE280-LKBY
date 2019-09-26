@@ -31,11 +31,19 @@ app.use(
 // APP LOGIC
 // ------------------------------------------------------------------
 
+function logUserEvent($user, event) {
+    const time = Date.now();
+    if (!$user.$data.eventLog) {
+        $user.$data.eventLog = [];
+    }
+    $user.$data.eventLog.push({time, event});
+    console.log("Logged event: ", event);
+}
+
 app.setHandler({
     LAUNCH() {
-        // TODO: see if user has already started questionnaire (so we can jump to
-        //  appropriate section etc.)
-        
+        logUserEvent(this.$user, "Started skill.");
+
         // Launch questionnaire from beginning
         this.followUpState('TakingQuestionnaire')
             .ask(CONFIG.intro);
@@ -47,7 +55,7 @@ app.setHandler({
         async SurveyQuestionIntent() {
             // If we haven't yet begun the questionnaire
             if (!this.$session.$data.questionnaireState) {
-                console.log("Starting new questionnaire session");
+                logUserEvent(this.$user, "Started new questionnaire section.");
 
                 // back-up old questionnaire responses (if they exist)
                 if (this.$user.$data.questionnaire) {
@@ -98,7 +106,7 @@ app.setHandler({
 
             const { qUserData } = this.$user.$data;
             const { context, prevResponse, sectionId, questionId } = this.$session.$data.questionnaireState;
-            
+
             // Initialize the "this" arg passed to prompt and response handlers
             const thisArg = { context, userData: qUserData };
 
@@ -138,6 +146,13 @@ app.setHandler({
 
                 // Save the answer since it is valid.
                 console.log(`Response to last question '${lastQuestion.name}' was '${lastAnswer}'.`);
+                logUserEvent(this.$user, {
+                    type: "Answered question",
+                    section: section.name,
+                    question: lastQuestion.name,
+                    answer: lastAnswer
+                });
+                
                 this.$user.$data.questionnaire[section.name][lastQuestion.name] = lastAnswer;
 
                 // Send response to Wit API, if needed
@@ -180,7 +195,7 @@ app.setHandler({
                     return;
                 }
 
-                // If there is a next session, jump to that.
+                // If there is a next section, jump to that.
                 this.$session.$data.questionnaireState.sectionId = next;
                 this.$session.$data.questionnaireState.questionId = 0;
 
