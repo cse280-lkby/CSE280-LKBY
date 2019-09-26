@@ -61,12 +61,6 @@ const SECTIONS = {
                         const {smoke_or_vape} = witResponse.entities;
                         if (smoke_or_vape != null) {
                             const response = witResponse.entities.smoke_or_vape[0].value;
-                            if (response === 'vape') {
-                                return {
-                                    reprompt: true,
-                                    response: 'Vape naysh.'
-                                };
-                            }
                             console.log('Value:', response);
                             this.context.smoke_or_vape = response;
                         }
@@ -176,7 +170,10 @@ const SECTIONS = {
                 type: SLOT_TYPES.OPEN_ENDED,
                 useWit: true,
                 onResponse(input, witResponse) {
-                    const errorResponse = { response: 'Sorry, I didn\'t understand that.', next: 'set_quit_date' };
+                    const errorResponse = {
+                        reprompt: true,
+                        response: 'Sorry, I didn\'t understand that. By which date would you like to quit?',
+                    };
                     if (witResponse == null || witResponse.entities == null) {
                         return errorResponse;
                     }
@@ -196,13 +193,19 @@ const SECTIONS = {
                     console.log('Raw date: ', dateStr, ", parsed: ", date);
                     if (date.getTime() <= Date.now()) {
                         return {
+                            reprompt: true,
                             response: 'Sorry, I think that date is in the past.',
-                            next: 'set_quit_date',
                         }
                     }
 
                     this.context.quitDate = date;
                     this.userData.quitDate = date;
+
+                    return {
+                        response: 'Sounds great. I\'m looking forward to helping you quit by '
+                            + date.toLocaleString('en-US', { month: 'long', day: 'numeric' })
+                            + '! Let\'s talk again soon!',
+                    }
                 }
             }
         ],

@@ -207,6 +207,7 @@ app.setHandler({
                     const finalMessage = `${prevResponse && prevResponse + '. ' || ''}${CONFIG.completed}`;
                     this.tell(finalMessage);
                     this.$user.$data.questionnaire.__finished__ = true;
+                    logUserEvent(this.$user, "Finished questionnaire");
                     return;
                 }
 
