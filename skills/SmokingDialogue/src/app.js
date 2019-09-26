@@ -112,7 +112,7 @@ app.setHandler({
 
             // Reset the prev response if it exists
             if (prevResponse != null) {
-                this.$session.$data.prevResponse = null;
+                this.$session.$data.questionnaireState.prevResponse = null;
             }
 
             const section = SECTIONS[sectionId];
@@ -171,15 +171,30 @@ app.setHandler({
                 // Call the questions onResponse handler
                 if (lastQuestion.onResponse != null) {
                     const responseResult = lastQuestion.onResponse.call(thisArg, lastAnswer, witResponse);
+                    if (responseResult != null) {
+                        let redirectTo = null;
+                        if (typeof responseResult === 'object') {
+                            if (responseResult.reprompt) {
+                                this.$alexaSkill.$dialog.elicitSlot(type.name, responseResult.response || responseResult.reprompt);
+                                return;
+                            }
+                            if (responseResult.response) {
+                                this.$session.$data.questionnaireState.prevResponse = responseResult.response;
+                            }
+                            if (responseResult.next) {
+                                redirectTo = responseResult.next;
+                            }
+                        }
+                        else if (typeof responseResult === 'string') {
+                            redirectTo = responseResult;
+                        }
 
-                    this.$session.$data.questionnaireState.prevResponse = responseResult && responseResult.response || null;
-
-                    // If the response handler returned a section name, redirect to it
-                    const redirectTo = typeof responseResult === 'string' ? responseResult : (responseResult && responseResult.next);
-                    if (typeof redirectTo === 'string') {
-                        this.$session.$data.questionnaireState.sectionId = redirectTo;
-                        this.$session.$data.questionnaireState.questionId = 0;
-                        return this.toStateIntent("TakingQuestionnaire", "SurveyQuestionIntent");
+                        // If the response handler returned a section name, redirect to it
+                        if (redirectTo != null) {
+                            this.$session.$data.questionnaireState.sectionId = redirectTo;
+                            this.$session.$data.questionnaireState.questionId = 0;
+                            return this.toStateIntent("TakingQuestionnaire", "SurveyQuestionIntent");
+                        }
                     }
                 }
             }

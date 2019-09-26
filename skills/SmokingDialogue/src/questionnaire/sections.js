@@ -18,6 +18,7 @@ const SLOT_TYPES = require('./slot-types');
  *   - An object with optional "response" and "next" properties.
  *   -   response: optional string spoken immediately before next question
  *   -   next: optional next state to jump to, if not set will do normal conversation flow
+ *   -   reprompt: optional boolean indicating if the same question should be asked again
  *   - Nothing to continue normal conversation flow.
  */
 
@@ -60,6 +61,12 @@ const SECTIONS = {
                         const {smoke_or_vape} = witResponse.entities;
                         if (smoke_or_vape != null) {
                             const response = witResponse.entities.smoke_or_vape[0].value;
+                            if (response === 'vape') {
+                                return {
+                                    reprompt: true,
+                                    response: 'Vape naysh.'
+                                };
+                            }
                             console.log('Value:', response);
                             this.context.smoke_or_vape = response;
                         }
