@@ -148,12 +148,16 @@ const SECTIONS = {
                             this.context.reason_for_quitting = reason;
                         }
                     }
-                    return {response: 'I see that you started smoking because of ' + this.context.reason_for_smoking +
-                        '. You want to quit smoking because of ' + this.context.reason_for_quitting, next: 'healthIssues'};
+                    return {
+                        response: 'I see that you started smoking because of '
+                            + this.context.reason_for_smoking
+                            + '. You want to quit smoking because of '
+                            + this.context.reason_for_quitting + '.',
+                    };
                 }
             },
         ],
-        next: set_quit_date
+        next: 'set_quit_date'
     },
 
     set_quit_date: {
@@ -221,7 +225,7 @@ const SECTIONS = {
                 type: SLOT_TYPES.OPEN_ENDED, //TODO: make a empathetic response with wit.ai
             },
         ],
-        next: quitting_aids,
+        next: 'quitting_aids',
     },
     quitting_aids: { // TODO: How to implement allowing users to ask for more info on different methods?
         name: 'quitting_aids',
