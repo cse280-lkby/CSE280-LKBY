@@ -204,7 +204,10 @@ app.setHandler({
                 const {next} = section;
                 if (!next) {
                     // If there is not a 'next' section, questionnaire is over.
-                    const finalMessage = `${prevResponse && prevResponse + '. ' || ''}${CONFIG.completed}`;
+                    // Note: prevResponse from questionnaireState should be said since this the last chance to do it.
+                    const prevResponses = [prevResponse, this.$session.$data.questionnaireState.prevResponse]
+                        .filter(Boolean).join(". ");
+                    const finalMessage = `${prevResponses ? prevResponses + '. ' : ''}${CONFIG.completed}`;
                     this.tell(finalMessage);
                     this.$user.$data.questionnaire.__finished__ = true;
                     logUserEvent(this.$user, "Finished questionnaire");
