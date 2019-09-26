@@ -154,7 +154,7 @@ const SECTIONS = {
                 type: SLOT_TYPES.OPEN_ENDED,
                 useWit: true,
                 onResponse(input, witResponse) {
-                    this.context.reason_for_smoking = "you wanted to.";
+                    this.context.reason_for_smoking = " you wanted to.";
                     if (witResponse != null && witResponse.entities != null) {
                         console.log('Got response from Wit API!', JSON.stringify(witResponse));
                         const {reasons_for_smoking} = witResponse.entities;
@@ -173,6 +173,7 @@ const SECTIONS = {
                 onResponse(input, witResponse) {
                     this.context.reason_for_quitting = "you wanted to.";
                     if (witResponse != null && witResponse.entities != null) {
+                        this.userData.onboarded = true;
                         console.log('Got response from Wit API!', JSON.stringify(witResponse));
                         const {reasons_for_quitting} = witResponse.entities;
                         if (reasons_for_quitting != null) {
