@@ -31,11 +31,19 @@ app.use(
 // APP LOGIC
 // ------------------------------------------------------------------
 
+function logUserEvent($user, event) {
+    const time = Date.now();
+    if (!$user.$data.eventLog) {
+        $user.$data.eventLog = [];
+    }
+    $user.$data.eventLog.push({time, event});
+    console.log("Logged event: ", event);
+}
+
 app.setHandler({
     LAUNCH() {
-        // TODO: see if user has already started questionnaire (so we can jump to
-        //  appropriate section etc.)
-        
+        logUserEvent(this.$user, "Started skill.");
+
         // Launch questionnaire from beginning
         this.followUpState('TakingQuestionnaire')
             .ask(CONFIG.intro);
@@ -47,7 +55,7 @@ app.setHandler({
         async SurveyQuestionIntent() {
             // If we haven't yet begun the questionnaire
             if (!this.$session.$data.questionnaireState) {
-                console.log("Starting new questionnaire session");
+                logUserEvent(this.$user, "Started new questionnaire section.");
 
                 // back-up old questionnaire responses (if they exist)
                 if (this.$user.$data.questionnaire) {
@@ -98,13 +106,13 @@ app.setHandler({
 
             const { qUserData } = this.$user.$data;
             const { context, prevResponse, sectionId, questionId } = this.$session.$data.questionnaireState;
-            
+
             // Initialize the "this" arg passed to prompt and response handlers
             const thisArg = { context, userData: qUserData };
 
             // Reset the prev response if it exists
             if (prevResponse != null) {
-                this.$session.$data.prevResponse = null;
+                this.$session.$data.questionnaireState.prevResponse = null;
             }
 
             const section = SECTIONS[sectionId];
@@ -138,6 +146,13 @@ app.setHandler({
 
                 // Save the answer since it is valid.
                 console.log(`Response to last question '${lastQuestion.name}' was '${lastAnswer}'.`);
+                logUserEvent(this.$user, {
+                    type: "Answered question",
+                    section: section.name,
+                    question: lastQuestion.name,
+                    answer: lastAnswer
+                });
+                
                 this.$user.$data.questionnaire[section.name][lastQuestion.name] = lastAnswer;
 
                 // Send response to Wit API, if needed
@@ -156,15 +171,30 @@ app.setHandler({
                 // Call the questions onResponse handler
                 if (lastQuestion.onResponse != null) {
                     const responseResult = lastQuestion.onResponse.call(thisArg, lastAnswer, witResponse);
+                    if (responseResult != null) {
+                        let redirectTo = null;
+                        if (typeof responseResult === 'object') {
+                            if (responseResult.reprompt) {
+                                this.$alexaSkill.$dialog.elicitSlot(type.name, responseResult.response || responseResult.reprompt);
+                                return;
+                            }
+                            if (responseResult.response) {
+                                this.$session.$data.questionnaireState.prevResponse = responseResult.response;
+                            }
+                            if (responseResult.next) {
+                                redirectTo = responseResult.next;
+                            }
+                        }
+                        else if (typeof responseResult === 'string') {
+                            redirectTo = responseResult;
+                        }
 
-                    this.$session.$data.questionnaireState.prevResponse = responseResult && responseResult.response || null;
-
-                    // If the response handler returned a section name, redirect to it
-                    const redirectTo = typeof responseResult === 'string' ? responseResult : (responseResult && responseResult.next);
-                    if (typeof redirectTo === 'string') {
-                        this.$session.$data.questionnaireState.sectionId = redirectTo;
-                        this.$session.$data.questionnaireState.questionId = 0;
-                        return this.toStateIntent("TakingQuestionnaire", "SurveyQuestionIntent");
+                        // If the response handler returned a section name, redirect to it
+                        if (redirectTo != null) {
+                            this.$session.$data.questionnaireState.sectionId = redirectTo;
+                            this.$session.$data.questionnaireState.questionId = 0;
+                            return this.toStateIntent("TakingQuestionnaire", "SurveyQuestionIntent");
+                        }
                     }
                 }
             }
@@ -174,13 +204,17 @@ app.setHandler({
                 const {next} = section;
                 if (!next) {
                     // If there is not a 'next' section, questionnaire is over.
-                    const finalMessage = `${prevResponse && prevResponse + '. ' || ''}${CONFIG.completed}`;
+                    // Note: prevResponse from questionnaireState should be said since this the last chance to do it.
+                    const prevResponses = [prevResponse, this.$session.$data.questionnaireState.prevResponse]
+                        .filter(Boolean).join(". ");
+                    const finalMessage = `${prevResponses ? prevResponses + '. ' : ''}${CONFIG.completed}`;
                     this.tell(finalMessage);
                     this.$user.$data.questionnaire.__finished__ = true;
+                    logUserEvent(this.$user, "Finished questionnaire");
                     return;
                 }
 
-                // If there is a next session, jump to that.
+                // If there is a next section, jump to that.
                 this.$session.$data.questionnaireState.sectionId = next;
                 this.$session.$data.questionnaireState.questionId = 0;
 
