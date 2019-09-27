@@ -28,6 +28,7 @@ const SECTIONS = {
     __main__() {
         let {quitDate} = this.userData;
         let {onboarded} = this.userData;
+        // Check if the user has been onboarded yet
         if (!onboarded) {
             return 'onboarding';
         }
@@ -105,9 +106,15 @@ const SECTIONS = {
                     console.log('Raw date: ', dateStr, ", parsed: ", date);
                     this.context.date_last_smoked = date;
 
+                    if (date.getTime() > Date.now()) {
+                        return {
+                            reprompt: true,
+                            response: 'Sorry, I think that date is in the future. When did you last ' + this.context.smoke_or_vape + '?',
+                        }
+                    }
+
                     const day_before_yesterday = new Date();
                     day_before_yesterday.setDate(day_before_yesterday.getDate() - 2);
-                    //TODO: make sure the date isn't in the future
 
                     if (date.getTime() <= day_before_yesterday.getTime()) {
                         console.log("Already quit.");
@@ -171,9 +178,9 @@ const SECTIONS = {
                 type: SLOT_TYPES.OPEN_ENDED,
                 useWit: true,
                 onResponse(input, witResponse) {
-                    this.context.reason_for_quitting = "you wanted to.";
+                    this.context.reason_for_quitting = " you wanted to.";
                     if (witResponse != null && witResponse.entities != null) {
-                        this.userData.onboarded = true;
+                        this.userData.onboarded = true; //Set onboarded to true
                         console.log('Got response from Wit API!', JSON.stringify(witResponse));
                         const {reasons_for_quitting} = witResponse.entities;
                         if (reasons_for_quitting != null) {
@@ -251,12 +258,12 @@ const SECTIONS = {
             {
                 // TODO quit_date_passed questions
                 name: 'quit_date_passed',
-                prompt: 'Hey, how did your quit attempt go?',
+                prompt: 'Hey it looks like you quit date has passed, how did it go?',
                 type: SLOT_TYPES.OPEN_ENDED, //TODO: use wit.ai to parse out different "slots" of data to form a response
                 //Ask different questions depending on whether the user succeeded or not
             }
         ],
-        // next: null
+        next: ''
     },
 
     quit_date_upcoming: {
@@ -266,6 +273,38 @@ const SECTIONS = {
                 name: 'quit_date_upcoming_emotion',
                 prompt: 'Hey, it looks like your quit date is coming up soon. How are you feeling about it?',
                 type: SLOT_TYPES.OPEN_ENDED, //TODO: make a empathetic response with wit.ai
+                useWit: true,
+                onResponse(input, witREsponse) {
+                    const errorResponse = {
+                        reprompt: true,
+                        response: 'Sorry, I didn\'t catch that. How are you feeling?',
+                    };
+                    if (witResponse == null || witResponse.entities == null) {
+                        return errorResponse;
+                    }
+                    console.log('Got response from Wit API!', JSON.stringify(witResponse));
+                    const {emotion} = witResponse.entities;
+                    if(emotion == null) {
+                        return errorResponse;
+                    }
+
+                    // Parse out the type of emotion said and build the response string accordingly.
+                    const feeling = emotion[0].value;
+                    this.context.quit_date_upcoming_feeling = feeling;
+                    this.userData.quit_date_upcoming_feeling = feeling;
+                    let res = 'You\'re going to do great!';
+                    if(feeling == 'positive') {
+                        res = 'Awesome! I\'m looking forward to seeing your progress! ' + res;
+                    } else if(feeling == 'nervous') {
+                        res = 'No need to feel nervous. ' + res;
+                    } else {
+                        res = 'I\'ll be here for you every step of they way. ' + res;
+                    }
+                    return {
+                        response: res,
+                        next: quitting_aids
+                    }
+                }
             },
         ],
         next: 'quitting_aids',
@@ -279,6 +318,34 @@ const SECTIONS = {
                 'a quit aid (like gum, patches or medication) and others prefer to quit cold turkey. Have you ' +
                 'thought about what method you would like to use to quit? If so, what quitting aid would you like to use?',
                 type: SLOT_TYPES.OPEN_ENDED,
+                useWit: true,
+                onResponse(input, witResponse) {
+                    const errorResponse = {
+                        reprompt: true,
+                        response: 'Sorry, I didn\'t understand that. What aid would you like to use?',
+                    };
+                    if (witResponse == null || witResponse.entities == null) {
+                        return errorResponse;
+                    }
+                    console.log('Got response from Wit API!', JSON.stringify(witResponse));
+                    const {no} = witResponse.entities;
+                    if(no != null) {
+                        return {
+                            response: 'That\'s okay! Think about it and we\'ll come back to this another time.',
+                            next: 'planning'
+                        }
+                    }
+                    const {quitting_aids} = witResponse.entities;
+                    if(quitting_aids == null) {
+                        return errorResponse;
+                    }
+                    this.userData.quitting_aid = quitting_aids[0].value;
+                    console.log('Got quitting_aid from Wit: ', this.userData.quitting_aid);
+                    return {
+                        response: this.userData.quitting_aid + ' is a great idea!',
+                        next: 'planning'
+                    }
+                }
             }
         ],
         next: 'planning'
@@ -287,19 +354,11 @@ const SECTIONS = {
         name: 'planning',
         questions: [
             {
-                name: 'first_top_trigger',
+                name: 'top_triggers',
                 // TODO: Can this be customized to list *what the client likes about smoking*
-                prompt: 'Let\'s do some plannning for the situations where you usually smoke. What is your top trigger?',
+                prompt: 'Let\'s do some plannning for the situations where you usually smoke. What are some of your top triggers?',
                 type: SLOT_TYPES.OPEN_ENDED
-            },{
-                name: 'second_top_trigger',
-                prompt: 'What is your second top trigger?',
-                type: SLOT_TYPES.OPEN_ENDED
-            },{
-                name: 'third_top_trigger',
-                prompt: 'What is your third top trigger?',
-                type: SLOT_TYPES.OPEN_ENDED
-            }
+            },
         ],
         next: ''
     },
@@ -311,7 +370,7 @@ const SECTIONS = {
         questions: [
             {
                 name: 'reason_for_quitting',
-                prompt: 'What methods were successful for you?',
+                prompt: 'What quitting aid or aids were helpful to you?',
                 type: SLOT_TYPES.OPEN_ENDED
                 //TODO: use wit.ai to match to different types of quitting methods
             }
