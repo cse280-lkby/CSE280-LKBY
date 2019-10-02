@@ -255,7 +255,7 @@ app.setHandler({
                         this.$user.$data.questionnaire.__finished__ = true;
 
                         logUserEvent(this.$user, Events.QUESTIONNAIRE_FINISHED, {
-                            finalMessage,
+                            finalMessage: CONFIG.completed,
                         });
                         return;
                     }
@@ -295,7 +295,7 @@ app.setHandler({
                     error: serializeError(e)
                 });
 
-
+                
             }
         }
     },
