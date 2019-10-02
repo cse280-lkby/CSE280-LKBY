@@ -20,18 +20,114 @@ const SLOT_TYPES = require('./slot-types');
 
 // List of survey sections.
 const SECTIONS = {
+// Decide which section to run first.
+    __main__() {
+        
+         let {name} = this.userData;
+         if (!name) {
+             return 'firstTime';
+         }
+        
+
+        // // Convert quitDate to Date if it is not already
+        // if (typeof quitDate === 'string') {
+        //     quitDate = new Date(quitDate);
+        // }
+
+        // // Check if quit date has passed
+        // if (Date.now() > quitDate.getTime()) {
+        //     return 'quit_date_passed';
+        // }
+
+        // return 'quit_date_upcoming';
+        return 'check_in';
+    },
+
+    // set_quit_date: {
+    //     name: 'set_quit_date',
+    //     questions: [
+    //         {
+    //             name: 'quit_date',
+    //             prompt: 'By which date would you like to quit?',
+    //             type: SLOT_TYPES.OPEN_ENDED,
+    //             useWit: true,
+    //             onResponse(input, witResponse) {
+    //                 const errorResponse = { response: 'Sorry, I didn\'t understand that.', next: 'onboarding' };
+    //                 if (witResponse == null || witResponse.entities == null) {
+    //                     return errorResponse;
+    //                 }
+    //                 console.log('Got response from Wit API!', JSON.stringify(witResponse));
+
+    //                 const {quit_date} = witResponse.entities;
+    //                 if (quit_date == null) {
+    //                     return errorResponse;
+    //                 }
+
+    //                 const dateStr = quit_date[0].value;
+    //                 if (quit_date == null) {
+    //                     return errorResponse;
+    //                 }
+
+    //                 const date = new Date(dateStr);
+    //                 console.log('Raw date: ', dateStr, ", parsed: ", date);
+    //                 if (date.getTime() <= Date.now()) {
+    //                     return {
+    //                         response: 'Sorry, I think that date is in the past.',
+    //                         next: 'onboarding',
+    //                     }
+    //                 }
+
+    //                 this.context.quitDate = date;
+    //                 this.userData.quitDate = date;
+    //             }
+    //         }
+    //     ],
+    //     next: ''
+    // },
+
+    firstTime: {
+        name: 'firstTime',
+        questions: [
+            {
+                name: 'getName',
+                 prompt: 'Hi, I am your College Buddy, nice to meet you. First, what can I call you when speaking with you?',
+                 type: SLOT_TYPES.OPEN_ENDED,
+                 useWit: false,
+                 onResponse(input, witResponse) {
+                    this.userData.name = input;
+                    this.context.name = input;
+                    return 'check_in';
+                 }    
+             }
+         ],
+         next: ''
+     },
     check_in: {
         name: 'check_in',
         questions: [
             {
                 name: 'feeling',
-                prompt: 'How are you feeling today?',
+                //+ this.userData.name +
+                prompt() { 
+                    return 'Hey, '
+                        + (this.userData.name)
+                        + ' how are you feeling today?';
+                },
+                //prompt: 'Hey,' + this.context.name + ' how are you feeling today?',
                 type: SLOT_TYPES.OPEN_ENDED,
                 useWit: true,
                 onResponse(input, witResponse) {
+                    const errorResponse = { response: 'Sorry, I didn\'t understand that.', next: 'check_in' };
+
                     if (witResponse != null) {
                         console.log('Got response from Wit API!', JSON.stringify(witResponse));
-                        if (witResponse.entities.negative) {
+                        const {mood} = witResponse.entities;
+                        if (mood == null) {
+                            return errorResponse;
+                        }
+
+                        const moodStr = mood[0].value;
+                        if (moodStr == "negative") {
                             return 'tempNegative';
                         }
                         return 'tempPositive';
@@ -52,16 +148,54 @@ const SECTIONS = {
                 onResponse(input, witResponse) {
                     if (witResponse != null) {
                         console.log('Got response from Wit API!', JSON.stringify(witResponse));
-                        if (witResponse.entities.exam) {
+                        const errorResponse = { response: 'Sorry, I didn\'t understand that.', next: 'check_in' };
+                        const {issues} = witResponse.entities;
+                        if (issues == null) {
+                            return errorResponse;
+                        }
+
+                        const issueStr = issues[0].value;
+                        // first set the appropriate contexts
+                        if (issueStr == "exam") {
+                            this.context.exam = "exams";
+                        }
+                        else if (issueStr == "course_material") {
+                            this.context.courseMaterials = "course materials";
+                        }
+                        else if (issueStr == "time_management") {
+                            this.context.timeMan = "time managment";
+                        }
+                        else {
+                        }
+
+                        const issueStr2 = issues[1].value;
+                        // first set the appropriate contexts
+                        if (issueStr2 == "exam") {
+                            this.context.exam = "exams";
+                        }
+                        else if (issueStr2 == "course_material") {
+                            this.context.courseMaterials = "course materials";
+                        }
+                        else if (issueStr2 == "time_management") {
+                            this.context.timeMan = "time managment";
+                        }
+                        else {
+                        }
+
+                        // now choose where to return to
+                        if ((issueStr == "exam") || (issueStr2 == "exam")) {
                             return 'tempExam';
                         }
-                        else if (witResponse.entities.course_materials) {
+                        else if ((issueStr == "course_material") || (issueStr2 == "course_material")) {
                             return 'tempCourseMaterials';
                         }
-                        else if (witResponse.entities.time_management) {
+                        else if ((issueStr == "time_management") || (issueStr2 == "time_management")) {
                             return 'tempTimeManagement';
                         }
-                        return 'contactCenter';
+                        else {
+                            return 'contactCenter';
+                        }
+
                     }
                 }
             },
@@ -109,7 +243,16 @@ const SECTIONS = {
                 + 'Those resources will help you to manage your time and help you understand the material prior to your exams. ',*/
                 type: SLOT_TYPES.OPEN_ENDED,
                 onResponse(input) {
-                    return 'ending'      ;              
+                    if (this.context.courseMaterials == "course materials") {
+                        return 'tempCourseMaterials'
+                    }
+                    else if (this.context.timeMan == "time managment") {
+                        return 'tempTimeManagement';
+                    }
+                    else {
+                        return 'ending';              
+
+                    }
                 }
             },
         ],
@@ -127,7 +270,12 @@ const SECTIONS = {
                 + 'attending office hours, and finding a group of classmates to study with.',*/
                 type: SLOT_TYPES.OPEN_ENDED,
                 onResponse(input) {
-                    return 'ending'      ;              
+                    if (this.context.timeMan == "time managment") {
+                        return 'tempTimeManagement';
+                    }
+                    else {
+                        return 'ending';              
+                    }
                 }
             },
         ],
@@ -161,13 +309,16 @@ const SECTIONS = {
             {
                 name: 'first_top_trigger',
                 // TODO: Can this be customized to list *what the client likes about smoking*
-                prompt: "",
+                prompt() { 
+                    return 'Thanks for sharing your current struggles with '
+                        + (this.context.exam)  + ' and ' + (this.context.timeMan)
+                        + '. Next week we can check in on how those are going for you.';
+                },
                 type: SLOT_TYPES.OPEN_ENDED
             }
         ],
         next: '' // TODO
     },
-    __main__: 'check_in',
     __version__: '1',
 };
 
