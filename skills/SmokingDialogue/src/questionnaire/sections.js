@@ -274,7 +274,7 @@ const SECTIONS = {
                 prompt: 'Hey, it looks like your quit date is coming up soon. How are you feeling about it?',
                 type: SLOT_TYPES.OPEN_ENDED, //TODO: make a empathetic response with wit.ai
                 useWit: true,
-                onResponse(input, witREsponse) {
+                onResponse(input, witResponse) {
                     const errorResponse = {
                         reprompt: true,
                         response: 'Sorry, I didn\'t catch that. How are you feeling?',
@@ -284,7 +284,7 @@ const SECTIONS = {
                     }
                     console.log('Got response from Wit API!', JSON.stringify(witResponse));
                     const {emotion} = witResponse.entities;
-                    if(emotion == null) {
+                    if (emotion == null) {
                         return errorResponse;
                     }
 
@@ -302,7 +302,7 @@ const SECTIONS = {
                     }
                     return {
                         response: res,
-                        next: quitting_aids
+                        next: 'quitting_aids'
                     }
                 }
             },
