@@ -292,10 +292,11 @@ app.setHandler({
 
             } catch (e) {
                 logUserEvent(this.$user, Events.FATAL_CRASH, {
-                    error: serializeError(e)
+                    error: serializeError(e),
+                    finalMessage: CONFIG.fatalError,
                 });
 
-                
+                this.tell(CONFIG.fatalError);
             }
         }
     },
