@@ -135,9 +135,7 @@ app.setHandler({
 
                 // Crash if section does not exist
                 if (!section) {
-                    console.error('Failed to find section with id', sectionId);
-                    this.tell('Sorry, an error occurred. Let\'s try talking again soon.');
-                    return;
+                    throw new Error(`Failed to find section with id '${sectionId}'`);
                 }
 
                 // Initialize questionnarie section data
