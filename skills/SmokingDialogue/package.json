@@ -9,7 +9,8 @@
     "jovo-platform-alexa": "^2.0.2",
     "jovo-platform-googleassistant": "^2.0.2",
     "jovo-plugin-debugger": "^2.0.2",
-    "node-wit": "^5.0.0"
+    "node-wit": "^5.0.0",
+    "serialize-error": "^5.0.0"
   },
   "devDependencies": {
     "gulp": "^4.0.0",
