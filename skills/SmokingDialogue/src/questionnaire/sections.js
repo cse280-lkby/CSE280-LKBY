@@ -24,6 +24,20 @@ const SLOT_TYPES = require('./slot-types');
 
 // List of survey sections.
 const SECTIONS = {
+    // Runs before the questionnaire actually starts.
+    // This should not modify userData or context, it should
+    // only READ this.userData and you should return
+    // a string which the user will answer "yes" to.
+    // Ex: "Welcome back, " + this.userData.name + ", ready to get started?"
+    // (Make sure to have a fallback if name is not set)
+    __intro__() {
+        if (this.userData.onboarded) {
+            return 'Welcome back! Ready to get started?';
+        }
+        return 'Hi there, welcome to the smoking dialogue! '
+            + 'Are you ready to get started?';
+    },
+
     // Decide which section to run first.
     __main__() {
         let {quitDate} = this.userData;

@@ -44,11 +44,24 @@ function logUserEvent($user, type, data) {
 
 app.setHandler({
     LAUNCH() {
-        logUserEvent(this.$user, Events.SKILL_INVOKED);
+        let intro = CONFIG.intro || 'Hi, ready to get started?';
+
+        if (SECTIONS.__intro__ != null) {
+            // Note: This should not be modified by __intro__
+            const userData = this.$user.$data.qUserData || {};
+    
+            intro = typeof SECTIONS.__intro__ === 'function'
+                ? SECTIONS.__intro__.call({userData})
+                : SECTIONS.__intro__;
+        }
+
+        logUserEvent(this.$user, Events.SKILL_INVOKED, {
+            intro,
+        });
 
         // Launch questionnaire from beginning
         this.followUpState('TakingQuestionnaire')
-            .ask(CONFIG.intro);
+            .ask(intro);
     },
 
     TakingQuestionnaire: {
@@ -282,7 +295,7 @@ app.setHandler({
                     error: serializeError(e)
                 });
 
-                // TODO tell user error occurred
+
             }
         }
     },
