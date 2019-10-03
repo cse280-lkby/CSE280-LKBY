@@ -26,6 +26,9 @@ const DAYS_UNTIL_CONSIDERED_QUIT = 4;
 
 // List of survey sections.
 const SECTIONS = {
+
+    // ======== INTRO AND MAIN METHODS ========
+
     // Runs before the questionnaire actually starts.
     // This should not modify userData or context, it should
     // only READ this.userData and you should return
@@ -74,6 +77,8 @@ const SECTIONS = {
         return 'quit_date_upcoming';
     },
 
+    // ======== ONBOARDING SECTIONS ========
+
     onboarding: {
         name: 'onboarding',
         questions: [
@@ -99,7 +104,7 @@ const SECTIONS = {
                     this.userData.smokeOrVape = 'smoke';
                     const {smoke_or_vape} = witResponse.entities;
                     if (smoke_or_vape != null) {
-                        const response = witResponse.entities.smoke_or_vape[0].value;
+                        const response = smoke_or_vape[0].value;
                         console.log('Value:', response);
                         this.userData.smokeOrVape = response;
                     }
@@ -126,16 +131,13 @@ const SECTIONS = {
                     if (quit_date == null) {
                         return errorResponse;
                     }
-                    const dateStr = witResponse.entities.quit_date[0].value;
+                    const dateStr = quit_date[0].value;
                     const date = new Date(dateStr);
                     console.log('Raw date: ', dateStr, ", parsed: ", date);
-                    this.context.date_last_smoked = date;
+                    this.userData.dateLastSmoked = date;
 
                     if (date.getTime() > Date.now()) {
-                        return {
-                            reprompt: true,
-                            response: 'Sorry, I think that date is in the future. When did you last ' + this.userData.smokeOrVape + '?',
-                        }
+                        return errorResponse;
                     }
 
                     const alreadyQuitDate = new Date();
@@ -175,7 +177,7 @@ const SECTIONS = {
                         return errorResponse;
                     }
                     // Normalized duration value is in seconds
-                    this.context.pod_or_pack_duration_sec = duration[0].normalized.value;
+                    this.userData.podOrPackDuration = duration[0].normalized.value;
                 }
             },{
                 name: 'reason_for_smoking',
@@ -186,14 +188,13 @@ const SECTIONS = {
                 type: SLOT_TYPES.OPEN_ENDED,
                 useWit: true,
                 onResponse(input, witResponse) {
-                    this.context.reason_for_smoking = " you wanted to.";
                     if (witResponse != null && witResponse.entities != null) {
                         console.log('Got response from Wit API!', JSON.stringify(witResponse));
                         const {reasons_for_smoking} = witResponse.entities;
                         if (reasons_for_smoking != null) {
-                            const reason = witResponse.entities.reasons_for_smoking[0].value;
+                            const reason = reasons_for_smoking[0].value;
                             console.log('Value:', reason);
-                            this.context.reason_for_smoking = reason;
+                            this.userData.reasonForSmoking = reason;
                         }
                     }
                 }
@@ -203,7 +204,6 @@ const SECTIONS = {
                 type: SLOT_TYPES.OPEN_ENDED,
                 useWit: true,
                 onResponse(input, witResponse) {
-                    this.context.reason_for_quitting = " you wanted to.";
                     if (witResponse != null && witResponse.entities != null) {
                         this.userData.onboarded = true; //Set onboarded to true
                         console.log('Got response from Wit API!', JSON.stringify(witResponse));
@@ -211,21 +211,21 @@ const SECTIONS = {
                         if (reasons_for_quitting != null) {
                             const reason = witResponse.entities.reasons_for_quitting[0].value;
                             console.log('Value:', reason);
-                            this.context.reason_for_quitting = reason;
+                            this.userData.reasonForQuitting = reason;
                         }
                     }
-                    return {
-                        response: 'I see that you started smoking because of '
-                            + this.context.reason_for_smoking
-                            + '. You want to quit smoking because of '
-                            + this.context.reason_for_quitting + '.',
-                    };
+                    // TODO fix up this response.
+                    // return {
+                    //     response: 'I see that you started smoking because of '
+                    //         + this.context.reason_for_smoking
+                    //         + '. You want to quit smoking because of '
+                    //         + this.context.reason_for_quitting + '.',
+                    // };
                 }
             },
         ],
         next: 'set_quit_date'
     },
-
     set_quit_date: {
         name: 'set_quit_date',
         questions: [
@@ -259,11 +259,10 @@ const SECTIONS = {
                     if (date.getTime() <= Date.now()) {
                         return {
                             reprompt: true,
-                            response: 'Sorry, I think that date is in the past.',
+                            response: 'How about a date a little further in the future?',
                         }
                     }
 
-                    this.context.quitDate = date;
                     this.userData.quitDate = date;
 
                     return {
@@ -276,6 +275,8 @@ const SECTIONS = {
         ],
         next: ''
     },
+
+    // ======== QUIT DATE PASSED SECTIONS ========
 
     quit_date_passed: {
         name: 'quit_date_passed',
@@ -290,6 +291,8 @@ const SECTIONS = {
         ],
         next: ''
     },
+
+    // ======== QUIT DATE UPCOMING SECTIONS ========
 
     quit_date_upcoming: {
         name: 'quit_date_upcoming',
@@ -315,12 +318,12 @@ const SECTIONS = {
 
                     // Parse out the type of emotion said and build the response string accordingly.
                     const feeling = emotion[0].value;
-                    this.context.quit_date_upcoming_feeling = feeling;
-                    this.userData.quit_date_upcoming_feeling = feeling;
+                    this.userData.quitDateUpcomingFeeling = feeling;
+
                     let res = 'You\'re going to do great!';
-                    if(feeling == 'positive') {
+                    if (feeling === 'positive') {
                         res = 'Awesome! I\'m looking forward to seeing your progress! ' + res;
-                    } else if(feeling == 'nervous') {
+                    } else if(feeling === 'nervous') {
                         res = 'No need to feel nervous. ' + res;
                     } else {
                         res = 'I\'ll be here for you every step of they way. ' + res;
@@ -354,7 +357,7 @@ const SECTIONS = {
                     }
                     console.log('Got response from Wit API!', JSON.stringify(witResponse));
                     const {no} = witResponse.entities;
-                    if(no != null) {
+                    if (no != null) {
                         return {
                             response: 'That\'s okay! Think about it and we\'ll come back to this another time.',
                             next: 'planning'
