@@ -1,5 +1,7 @@
 const SLOT_TYPES = require('./slot-types');
 
+const DAYS_UNTIL_CONSIDERED_QUIT = 4;
+
 /*
  * Sections:
  *  must contain a 'name', a list of 'questions' (at least 1), and can have a 'next'.
@@ -31,8 +33,16 @@ const SECTIONS = {
     // Ex: "Welcome back, " + this.userData.name + ", ready to get started?"
     // (Make sure to have a fallback if name is not set)
     __intro__() {
-        if (this.userData.onboarded) {
-            return 'Welcome back! Ready to get started?';
+        const {onboarded, smokeOrVape} = this.userData;
+        if (onboarded) {
+            let phrase = 'Ready to get started?';
+            if (smokeOrVape === 'vape') {
+                phrase = 'Ready to kick that vaping habit?';
+            }
+            if (smokeOrVape === 'smoke') {
+                phrase = 'Ready to kick that smoking habit?';
+            }
+            return 'Welcome back! ' + phrase;
         }
         return 'Hi there, welcome to the smoking dialogue! '
             + 'Are you ready to get started?';
@@ -40,15 +50,14 @@ const SECTIONS = {
 
     // Decide which section to run first.
     __main__() {
-        let {quitDate} = this.userData;
-        let {onboarded} = this.userData;
+        let {onboarded, quitDate} = this.userData;
         // Check if the user has been onboarded yet
         if (!onboarded) {
             return 'onboarding';
         }
 
         // Prompt the user to set a quit date
-        if(!quitDate) {
+        if (!quitDate) {
             return 'set_quit_date';
         }
 
@@ -87,23 +96,25 @@ const SECTIONS = {
                     console.log('Got response from Wit API!', JSON.stringify(witResponse));
 
                     //Initializes default values for the context smoke_or_vape and pod_or_pack
-                    this.context.smoke_or_vape = 'smoke';
+                    this.userData.smokeOrVape = 'smoke';
                     const {smoke_or_vape} = witResponse.entities;
                     if (smoke_or_vape != null) {
                         const response = witResponse.entities.smoke_or_vape[0].value;
                         console.log('Value:', response);
-                        this.context.smoke_or_vape = response;
+                        this.userData.smokeOrVape = response;
                     }
                 }
             },{
                 name: 'date_last_smoked',
-                prompt() { return 'When was the last time you ' + this.context.smoke_or_vape + 'd?' },
+                prompt() {
+                    return 'When was the last time you ' + this.userData.smokeOrVape + 'd?';
+                },
                 type: SLOT_TYPES.OPEN_ENDED,
                 useWit: true,
                 onResponse(input, witResponse) {
                     const errorResponse = {
                         reprompt: true,
-                        response: 'Sorry, I didn\'t understand that. When was the last time you ' + this.context.smoke_or_vape + 'd?',
+                        response: 'Sorry, I didn\'t understand that. When was the last time you ' + this.userData.smokeOrVape + 'd?',
                     };
 
                     if (witResponse == null || witResponse.entities == null) {
@@ -123,14 +134,14 @@ const SECTIONS = {
                     if (date.getTime() > Date.now()) {
                         return {
                             reprompt: true,
-                            response: 'Sorry, I think that date is in the future. When did you last ' + this.context.smoke_or_vape + '?',
+                            response: 'Sorry, I think that date is in the future. When did you last ' + this.userData.smokeOrVape + '?',
                         }
                     }
 
-                    const day_before_yesterday = new Date();
-                    day_before_yesterday.setDate(day_before_yesterday.getDate() - 2);
+                    const alreadyQuitDate = new Date();
+                    alreadyQuitDate.setDate(alreadyQuitDate.getDate() - DAYS_UNTIL_CONSIDERED_QUIT);
 
-                    if (date.getTime() <= day_before_yesterday.getTime()) {
+                    if (date.getTime() <= alreadyQuitDate.getTime()) {
                         console.log("Already quit.");
                         return {
                             response: 'Awesome! Sounds like you quit already!', 
@@ -142,7 +153,7 @@ const SECTIONS = {
                 name: 'duration_of_pod_or_pack',
                 prompt() { 
                     return 'How long does a single '
-                        + (this.context.smoke_or_vape === 'vape' ? 'pod' : 'pack')
+                        + (this.userData.smokeOrVape === 'vape' ? 'pod' : 'pack')
                         + ' usually last for you?';
                 },
                 type: SLOT_TYPES.OPEN_ENDED,
@@ -151,7 +162,7 @@ const SECTIONS = {
                     const errorResponse = {
                         reprompt: true,
                         response: 'Sorry, I didn\'t understand that. How long does a single '
-                        + (this.context.smoke_or_vape === 'vape' ? 'pod' : 'pack')
+                        + (this.userData.smokeOrVape === 'vape' ? 'pod' : 'pack')
                         + ' usually last for you?',
                     };
 
@@ -170,7 +181,7 @@ const SECTIONS = {
                 name: 'reason_for_smoking',
                 prompt() {
                     return 'Here\'s a question you probably weren\'t expecting, what made you start '
-                        + (this.context.smoke_or_vape === 'vape' ? 'vaping' : 'smoking') + '?';
+                        + (this.userData.smokeOrVape === 'vape' ? 'vaping' : 'smoking') + '?';
                 },
                 type: SLOT_TYPES.OPEN_ENDED,
                 useWit: true,
@@ -272,7 +283,7 @@ const SECTIONS = {
             {
                 // TODO quit_date_passed questions
                 name: 'quit_date_passed',
-                prompt: 'Hey it looks like you quit date has passed, how did it go?',
+                prompt: 'Hey it looks like your quit date has passed, how did it go?',
                 type: SLOT_TYPES.OPEN_ENDED, //TODO: use wit.ai to parse out different "slots" of data to form a response
                 //Ask different questions depending on whether the user succeeded or not
             }
