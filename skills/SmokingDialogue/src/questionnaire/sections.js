@@ -306,7 +306,7 @@ const SECTIONS = {
                         // 'positive' outcome indicates that the user successfully quit.
                         // TODO: coaching and emotion parsing
                         return {
-                            response: 'I\'m so glad to hear that your attempt went well. '
+                            response: 'I\'m so glad to hear that you were able to quit! '
                                 + 'If you ever need someone to talk to I will always be here. '
                                 + 'I\'d like to ask you some questions about your experience so that '
                                 + 'we may be able to help others in the future.',
@@ -339,7 +339,7 @@ const SECTIONS = {
                 onResponse(input) {
                     if (input === 'yes') {
                         return {
-                            response: 'I\'m so glad to hear that your attempt went well. '
+                            response: 'I\'m so glad to hear that you were able to quit! '
                                 + 'If you ever need someone to talk to I will always be here. '
                                 + 'I\'d like to ask you some questions about your experience so that '
                                 + 'we may be able to help others in the future.',
