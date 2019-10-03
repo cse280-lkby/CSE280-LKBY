@@ -193,7 +193,6 @@ const SECTIONS = {
                         const {reasons_for_smoking} = witResponse.entities;
                         if (reasons_for_smoking != null) {
                             const reason = reasons_for_smoking[0].value;
-                            console.log('Value:', reason);
                             this.userData.reasonForSmoking = reason;
                         }
                     }
@@ -282,11 +281,113 @@ const SECTIONS = {
         name: 'quit_date_passed',
         questions: [
             {
-                // TODO quit_date_passed questions
                 name: 'quit_date_passed',
                 prompt: 'Hey it looks like your quit date has passed, how did it go?',
                 type: SLOT_TYPES.OPEN_ENDED, //TODO: use wit.ai to parse out different "slots" of data to form a response
-                //Ask different questions depending on whether the user succeeded or not
+                useWit: true,
+                onResponse(input, witResponse) {
+                    const errorResponse = {
+                        reprompt: true,
+                        response: 'Sorry, I didn\'t catch that. How did your quit attempt go?',
+                    };
+                    if (witResponse == null || witResponse.entities == null) {
+                        return errorResponse;
+                    }
+                    console.log('Got response from Wit API!', JSON.stringify(witResponse));
+                    const {outcome} = witResponse.entities;
+                    if (outcome == null) {
+                        // Response was not understood properly. Redirect
+                        // to a simple yes or no question 
+                        console.error('Did not understand quit_date_passed response');
+                        return 'quit_date_passed_unclear_response';
+                    }
+
+                    if (outcome[0].value === 'positive') {
+                        // 'positive' outcome indicates that the user successfully quit.
+                        // TODO: coaching and emotion parsing
+                        return {
+                            response: 'I\'m so glad to hear that your attempt went well. '
+                                + 'If you ever need someone to talk to I will always be here. '
+                                + 'I\'d like to ask you some questions about your experience so that '
+                                + 'we may be able to help others in the future.',
+                            next: 'already_quit',
+                        }
+                    }
+                    else {
+                        // 'negative' outcome indicates a relapse
+                        return {
+                            response: 'Don\'t feel bad! Quitting can be unbelievably hard. '
+                                + 'The best thing you can do is try again as soon as you feel ready. '
+                                + 'I know you can do it!',
+                            next: 'quit_attempt_failed',
+                        }
+                    }
+                }
+            }
+        ],
+        next: ''
+    },
+
+    quit_date_passed_unclear_response: {
+        name: 'quit_date_passed_unclear_response',
+        questions: [
+            {
+                name: 'quit_successfully',
+                prompt: 'Sorry, I\'m still learning and didn\'t understand that fully. '
+                    + 'Was your quit attempt successful?',
+                type: SLOT_TYPES.YES_NO,
+                onResponse(input) {
+                    if (input === 'yes') {
+                        return {
+                            response: 'I\'m so glad to hear that your attempt went well. '
+                                + 'If you ever need someone to talk to I will always be here. '
+                                + 'I\'d like to ask you some questions about your experience so that '
+                                + 'we may be able to help others in the future.',
+                            next: 'already_quit',
+                        }
+                    } else {
+                        return {
+                            response: 'Don\'t feel bad! Quitting can be unbelievably hard. '
+                                + 'The best thing you can do is try again as soon as you feel ready. '
+                                + 'I know you can do it!',
+                            next: 'quit_attempt_failed',
+                        }
+                    }
+                }
+            }
+        ]
+    },
+
+    quit_attempt_failed: {
+        name: 'quit_attempt_failed',
+        questions: [
+            {
+                name: 'quit_attempt_thoughts',
+                prompt: 'What was going through your head as you attempted to quit?',
+                type: SLOT_TYPES.OPEN_ENDED,
+                useWit: true,
+                onResponse(input, witResponse) {
+                    // TODO coach based on recognized responses
+                    return {
+                        response: 'I completely understand. That is a very common experience '
+                            + 'but I know you can do this. I think we should get you back on '
+                            + 'the wagon.',
+                        next: 'set_quit_date'
+                    };
+                }
+            }
+        ]
+    },
+
+    // If the user has already quit. Collects some data on what worked and didn't work in case they relapse.
+    already_quit: {
+        name: 'already_quit',
+        questions: [
+            {
+                name: 'reason_for_quitting',
+                prompt: 'What quitting aids worked the best for you?',
+                type: SLOT_TYPES.OPEN_ENDED
+                //TODO: additional questions and coaching
             }
         ],
         next: ''
@@ -300,7 +401,7 @@ const SECTIONS = {
             {
                 name: 'quit_date_upcoming_emotion',
                 prompt: 'Hey, it looks like your quit date is coming up soon. How are you feeling about it?',
-                type: SLOT_TYPES.OPEN_ENDED, //TODO: make a empathetic response with wit.ai
+                type: SLOT_TYPES.OPEN_ENDED,
                 useWit: true,
                 onResponse(input, witResponse) {
                     const errorResponse = {
@@ -342,15 +443,15 @@ const SECTIONS = {
         questions: [
             {
                 name: 'has_method_to_try', //TODO: use wit.ai to parse out specific methods (or a no response) and act accordingly
-                prompt: 'Now let’s talk about what method you want to use to quit. Some people like to use ' +
-                'a quit aid (like gum, patches or medication) and others prefer to quit cold turkey. Have you ' +
-                'thought about what method you would like to use to quit? If so, what quitting aid would you like to use?',
+                prompt: 'I think we should talk about what method you want to use to quit. Some people like to use '
+                    + 'a quitting aid such as gum, patches or medication. Others prefer to quit cold turkey. Have you '
+                    + 'thought about what method you would like to use to quit? If so, please tell me about it?',
                 type: SLOT_TYPES.OPEN_ENDED,
                 useWit: true,
                 onResponse(input, witResponse) {
                     const errorResponse = {
                         reprompt: true,
-                        response: 'Sorry, I didn\'t understand that. What aid would you like to use?',
+                        response: 'Sorry, I didn\'t understand that. What quitting aid would you like to use?',
                     };
                     if (witResponse == null || witResponse.entities == null) {
                         return errorResponse;
@@ -358,26 +459,27 @@ const SECTIONS = {
                     console.log('Got response from Wit API!', JSON.stringify(witResponse));
                     const {no} = witResponse.entities;
                     if (no != null) {
+                        // TODO explain the different types of quitting aids
                         return {
                             response: 'That\'s okay! Think about it and we\'ll come back to this another time.',
                             next: 'planning'
                         }
                     }
                     const {quitting_aids} = witResponse.entities;
-                    if(quitting_aids == null) {
+                    if (quitting_aids == null) {
                         return errorResponse;
                     }
-                    this.userData.quitting_aid = quitting_aids[0].value;
-                    console.log('Got quitting_aid from Wit: ', this.userData.quitting_aid);
+                    this.userData.quittingAid = quitting_aids[0].value;
+                    console.log('Got quitting_aid from Wit: ', this.userData.quittingAid);
                     return {
-                        response: this.userData.quitting_aid + ' is a great idea!',
-                        next: 'planning'
+                        response: this.userData.quittingAid + ' is a great idea!',
                     }
                 }
             }
         ],
-        next: 'planning'
+        next: '' // 'planning'
     },
+    // TODO: more coaching!
     planning: {
         name: 'planning',
         questions: [
@@ -391,20 +493,6 @@ const SECTIONS = {
         next: ''
     },
 
-    // If the user has already quit. Collects some data on what worked and didn't work in case they relapse.
-    // TODO Coaching
-    already_quit: {
-        name: 'already_quit',
-        questions: [
-            {
-                name: 'reason_for_quitting',
-                prompt: 'What quitting aid or aids were helpful to you?',
-                type: SLOT_TYPES.OPEN_ENDED
-                //TODO: use wit.ai to match to different types of quitting methods
-            }
-        ],
-        next: ''
-    },
     __version__: '1',
 };
 
