@@ -230,7 +230,7 @@ const SECTIONS = {
                 }
             },
         ],
-        next: 'set_quit_date'
+        next: 'set_quit_date' //TODO: Should we ask if the user wants to set a quit date right now?
     },
     set_quit_date: {
         name: 'set_quit_date',
@@ -338,6 +338,7 @@ const SECTIONS = {
         next: ''
     },
 
+    //TODO: this could be made into a generic function with context strings "yesResponse" and "noResponse"
     quit_date_passed_unclear_response: {
         name: 'quit_date_passed_unclear_response',
         questions: [
@@ -413,8 +414,8 @@ const SECTIONS = {
                         return errorResponse;
                     }
                     for(i = 0; i < quitting_aids.length(); i++) {
-                        this.userData.successfulQuittingAid[i] = quitting_aids[i].value;
-                        console.log('Got quitting_aid from Wit: ', this.userData.successfulQuittingAid[i]);
+                        this.userData.successfulQuittingAids[i] = quitting_aids[i].value;
+                        console.log('Got quitting_aid from Wit: ', this.userData.successfulQuittingAids[i]);
                     }
                 }
                 //TODO: additional questions and coaching
@@ -472,10 +473,10 @@ const SECTIONS = {
         name: 'quitting_aids',
         questions: [
             {
-                name: 'has_method_to_try', //TODO: use wit.ai to parse out specific methods (or a no response) and act accordingly
+                name: 'has_method_to_try', //use wit.ai to parse out specific methods (or a no response) and act accordingly
                 prompt: 'I think we should talk about what method you want to use to quit. Some people like to use '
                     + 'a quitting aid such as gum, patches or medication. Others prefer to quit cold turkey. Have you '
-                    + 'thought about what method you would like to use to quit? If so, please tell me about it?',
+                    + 'thought about what method you would like to use to quit? If so, what method will you try?',
                 type: SLOT_TYPES.OPEN_ENDED,
                 useWit: true,
                 onResponse(input, witResponse) {
@@ -503,6 +504,7 @@ const SECTIONS = {
                     console.log('Got quitting_aid from Wit: ', this.userData.quittingAid);
                     return {
                         response: this.userData.quittingAid + ' is a great idea!',
+                        next: 'planning'
                     }
                 }
             }
