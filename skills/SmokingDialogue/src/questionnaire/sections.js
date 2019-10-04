@@ -213,13 +213,20 @@ const SECTIONS = {
                             this.userData.reasonForQuitting = reason;
                         }
                     }
-                    // TODO fix up this response.
-                    // return {
-                    //     response: 'I see that you started smoking because of '
-                    //         + this.context.reason_for_smoking
-                    //         + '. You want to quit smoking because of '
-                    //         + this.context.reason_for_quitting + '.',
-                    // };
+                    resp = ''
+                    if(this.userData.reasonForSmoking != null) {
+                        resp += 'I see that you started smoking because of '
+                        + this.userData.reasonForSmoking + '. ';
+                    }
+                    if(this.userData.reasonForQuitting != null) {
+                        resp += 'You want to quit smoking because of '
+                        + this.userData.reasonForQuitting + '. '
+                    }
+                    resp += 'Next, let\'s decide on a quit date.';
+
+                    return {
+                        response: resp,
+                    };
                 }
             },
         ],
@@ -302,6 +309,8 @@ const SECTIONS = {
                         return 'quit_date_passed_unclear_response';
                     }
 
+                    //TODO: what if the person says something like "It didn't go well, I ended up relapsing, but I'm optimistic about trying again!"
+                    //In other words, negative for current attempt but positive for future attempts/overall. Need to tell the difference
                     if (outcome[0].value === 'positive') {
                         // 'positive' outcome indicates that the user successfully quit.
                         // TODO: coaching and emotion parsing
@@ -317,6 +326,7 @@ const SECTIONS = {
                         // 'negative' outcome indicates a relapse
                         return {
                             response: 'Don\'t feel bad! Quitting can be unbelievably hard. '
+                                + 'For most, it takes multiple attempts before they successfully quit. '
                                 + 'The best thing you can do is try again as soon as you feel ready. '
                                 + 'I know you can do it!',
                             next: 'quit_attempt_failed',
@@ -348,6 +358,7 @@ const SECTIONS = {
                     } else {
                         return {
                             response: 'Don\'t feel bad! Quitting can be unbelievably hard. '
+                                + 'For most, it takes multiple attempts before they successfully quit. '
                                 + 'The best thing you can do is try again as soon as you feel ready. '
                                 + 'I know you can do it!',
                             next: 'quit_attempt_failed',
@@ -384,9 +395,28 @@ const SECTIONS = {
         name: 'already_quit',
         questions: [
             {
-                name: 'reason_for_quitting',
+                name: 'successful_quitting_aid',
                 prompt: 'What quitting aids worked the best for you?',
-                type: SLOT_TYPES.OPEN_ENDED
+                type: SLOT_TYPES.OPEN_ENDED,
+                useWit: true,
+                onResponse(input, witResponse) {
+                    const errorResponse = {
+                        reprompt: true,
+                        response: 'Sorry, I didn\'t understand that. What quitting aid would you like to use?',
+                    };
+                    if (witResponse == null || witResponse.entities == null) {
+                        return errorResponse;
+                    }
+                    console.log('Got response from Wit API!', JSON.stringify(witResponse));
+                    const {quitting_aids} = witResponse.entities;
+                    if (quitting_aids == null) {
+                        return errorResponse;
+                    }
+                    for(i = 0; i < quitting_aids.length(); i++) {
+                        this.userData.successfulQuittingAid[i] = quitting_aids[i].value;
+                        console.log('Got quitting_aid from Wit: ', this.userData.successfulQuittingAid[i]);
+                    }
+                }
                 //TODO: additional questions and coaching
             }
         ],
