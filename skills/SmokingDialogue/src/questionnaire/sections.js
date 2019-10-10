@@ -213,12 +213,14 @@ const SECTIONS = {
                             this.userData.reasonForQuitting = reason;
                         }
                     }
-                    resp = ''
-                    if(this.userData.reasonForSmoking != null) {
+                    
+                    let resp = '';
+                    const {reasonForSmoking, reasonForQuitting} = this.userData;
+                    if(reasonForSmoking != null) {
                         resp += 'I see that you started smoking because of '
                         + this.userData.reasonForSmoking + '. ';
                     }
-                    if(this.userData.reasonForQuitting != null) {
+                    if(reasonForQuitting != null) {
                         resp += 'You want to quit smoking because of '
                         + this.userData.reasonForQuitting + '. '
                     }
@@ -413,10 +415,8 @@ const SECTIONS = {
                     if (quitting_aids == null) {
                         return errorResponse;
                     }
-                    for(i = 0; i < quitting_aids.length(); i++) {
-                        this.userData.successfulQuittingAids[i] = quitting_aids[i].value;
-                        console.log('Got quitting_aid from Wit: ', this.userData.successfulQuittingAids[i]);
-                    }
+                    // Store quitting aids as an array of values
+                    this.userData.successfulQuittingAids = quitting_aids.map(ent => ent.value);
                 }
                 //TODO: additional questions and coaching
             }
