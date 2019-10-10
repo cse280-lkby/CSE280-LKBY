@@ -304,7 +304,7 @@ const SECTIONS = {
                     }
                     console.log('Got response from Wit API!', JSON.stringify(witResponse));
                     const {outcome} = witResponse.entities;
-                    if (outcome == null) {
+                    if (outcome == null || outcome[0].confidence < .85) {
                         // Response was not understood properly. Redirect
                         // to a simple yes or no question 
                         console.error('Did not understand quit_date_passed response');
