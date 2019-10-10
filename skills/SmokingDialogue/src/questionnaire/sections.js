@@ -98,14 +98,11 @@ const SECTIONS = {
                         return errorResponse;
                     }
 
-                    console.log('Got response from Wit API!', JSON.stringify(witResponse));
-
                     //Initializes default values for the context smoke_or_vape and pod_or_pack
                     this.userData.smokeOrVape = 'smoke';
                     const {smoke_or_vape} = witResponse.entities;
                     if (smoke_or_vape != null) {
                         const response = smoke_or_vape[0].value;
-                        console.log('Value:', response);
                         this.userData.smokeOrVape = response;
                     }
                 }
@@ -126,14 +123,12 @@ const SECTIONS = {
                         return errorResponse;
                     }
 
-                    console.log('Got response from Wit API!', JSON.stringify(witResponse));
                     const {quit_date} = witResponse.entities;
                     if (quit_date == null) {
                         return errorResponse;
                     }
                     const dateStr = quit_date[0].value;
                     const date = new Date(dateStr);
-                    console.log('Raw date: ', dateStr, ", parsed: ", date);
                     this.userData.dateLastSmoked = date;
 
                     if (date.getTime() > Date.now()) {
@@ -144,7 +139,6 @@ const SECTIONS = {
                     alreadyQuitDate.setDate(alreadyQuitDate.getDate() - DAYS_UNTIL_CONSIDERED_QUIT);
 
                     if (date.getTime() <= alreadyQuitDate.getTime()) {
-                        console.log("Already quit.");
                         return {
                             response: 'Awesome! Sounds like you quit already!', 
                             next: "already_quit"
@@ -171,7 +165,6 @@ const SECTIONS = {
                     if (witResponse == null || witResponse.entities == null) {
                         return errorResponse;
                     }
-                    console.log('Got response from Wit API!', JSON.stringify(witResponse));
                     const {duration} = witResponse.entities;
                     if (duration == null) {
                         return errorResponse;
@@ -189,7 +182,6 @@ const SECTIONS = {
                 useWit: true,
                 onResponse(input, witResponse) {
                     if (witResponse != null && witResponse.entities != null) {
-                        console.log('Got response from Wit API!', JSON.stringify(witResponse));
                         const {reasons_for_smoking} = witResponse.entities;
                         if (reasons_for_smoking != null) {
                             const reason = reasons_for_smoking[0].value;
@@ -205,11 +197,9 @@ const SECTIONS = {
                 onResponse(input, witResponse) {
                     if (witResponse != null && witResponse.entities != null) {
                         this.userData.onboarded = true; //Set onboarded to true
-                        console.log('Got response from Wit API!', JSON.stringify(witResponse));
                         const {reasons_for_quitting} = witResponse.entities;
                         if (reasons_for_quitting != null) {
                             const reason = witResponse.entities.reasons_for_quitting[0].value;
-                            console.log('Value:', reason);
                             this.userData.reasonForQuitting = reason;
                         }
                     }
@@ -250,7 +240,6 @@ const SECTIONS = {
                     if (witResponse == null || witResponse.entities == null) {
                         return errorResponse;
                     }
-                    console.log('Got response from Wit API!', JSON.stringify(witResponse));
 
                     const {quit_date} = witResponse.entities;
                     if (quit_date == null) {
@@ -263,7 +252,6 @@ const SECTIONS = {
                     }
 
                     const date = new Date(dateStr);
-                    console.log('Raw date: ', dateStr, ", parsed: ", date);
                     if (date.getTime() <= Date.now()) {
                         return {
                             reprompt: true,
@@ -302,7 +290,6 @@ const SECTIONS = {
                     if (witResponse == null || witResponse.entities == null) {
                         return errorResponse;
                     }
-                    console.log('Got response from Wit API!', JSON.stringify(witResponse));
                     const {outcome} = witResponse.entities;
                     if (outcome == null || outcome[0].confidence < .85) {
                         // Response was not understood properly. Redirect
@@ -410,7 +397,7 @@ const SECTIONS = {
                     if (witResponse == null || witResponse.entities == null) {
                         return errorResponse;
                     }
-                    console.log('Got response from Wit API!', JSON.stringify(witResponse));
+
                     const {quitting_aids} = witResponse.entities;
                     if (quitting_aids == null) {
                         return errorResponse;
@@ -442,7 +429,7 @@ const SECTIONS = {
                     if (witResponse == null || witResponse.entities == null) {
                         return errorResponse;
                     }
-                    console.log('Got response from Wit API!', JSON.stringify(witResponse));
+
                     const {emotion} = witResponse.entities;
                     if (emotion == null) {
                         return errorResponse;
@@ -487,29 +474,28 @@ const SECTIONS = {
                     if (witResponse == null || witResponse.entities == null) {
                         return errorResponse;
                     }
-                    console.log('Got response from Wit API!', JSON.stringify(witResponse));
+
                     const {no} = witResponse.entities;
                     if (no != null) {
                         // TODO explain the different types of quitting aids
                         return {
                             response: 'That\'s okay! Think about it and we\'ll come back to this another time.',
-                            next: 'planning'
                         }
                     }
+
                     const {quitting_aids} = witResponse.entities;
                     if (quitting_aids == null) {
                         return errorResponse;
                     }
                     this.userData.quittingAid = quitting_aids[0].value;
-                    console.log('Got quitting_aid from Wit: ', this.userData.quittingAid);
+
                     return {
                         response: this.userData.quittingAid + ' is a great idea!',
-                        next: 'planning'
                     }
                 }
             }
         ],
-        next: '' // 'planning'
+        next: 'planning'
     },
     // TODO: more coaching!
     planning: {
