@@ -2,6 +2,15 @@ const SLOT_TYPES = require('./slot-types');
 
 const DAYS_UNTIL_CONSIDERED_QUIT = 4;
 
+function dedupe(list) {
+    return [...(new Set(list))];
+}
+
+function uniqueValues(witEntity) {
+    if (witEntity == null) return [];
+    return dedupe(witEntity.map(ent => ent.value));
+}
+
 /*
  * Sections:
  *  must contain a 'name', a list of 'questions' (at least 1), and can have a 'next'.
@@ -173,7 +182,7 @@ const SECTIONS = {
                     this.userData.podOrPackDuration = duration[0].normalized.value;
                 }
             },{
-                name: 'reason_for_smoking',
+                name: 'reasons_for_smoking',
                 prompt() {
                     return 'Here\'s a question you probably weren\'t expecting, what made you start '
                         + (this.userData.smokeOrVape === 'vape' ? 'vaping' : 'smoking') + '?';
@@ -184,13 +193,12 @@ const SECTIONS = {
                     if (witResponse != null && witResponse.entities != null) {
                         const {reasons_for_smoking} = witResponse.entities;
                         if (reasons_for_smoking != null) {
-                            const reason = reasons_for_smoking[0].value;
-                            this.userData.reasonForSmoking = reason;
+                            this.userData.reasonsForSmoking = uniqueValues(reasons_for_smoking);
                         }
                     }
                 }
             },{
-                name: 'reason_for_quitting',
+                name: 'reasons_for_quitting',
                 prompt: 'I\'m wondering if a recent event inspired you to quit. What are your main reasons for quitting now?',
                 type: SLOT_TYPES.OPEN_ENDED,
                 useWit: true,
@@ -199,22 +207,65 @@ const SECTIONS = {
                         this.userData.onboarded = true; //Set onboarded to true
                         const {reasons_for_quitting} = witResponse.entities;
                         if (reasons_for_quitting != null) {
-                            const reason = witResponse.entities.reasons_for_quitting[0].value;
-                            this.userData.reasonForQuitting = reason;
+                            this.userData.reasonsForQuitting = uniqueValues(reasons_for_quitting);
                         }
                     }
                     
-                    let resp = '';
-                    const {reasonForSmoking, reasonForQuitting} = this.userData;
-                    if(reasonForSmoking != null) {
-                        resp += 'I see that you started smoking because of '
-                        + this.userData.reasonForSmoking + '. ';
+                    let resp = 'You are not alone. ';
+                    const {reasonsForSmoking, reasonsForQuitting} = this.userData;
+                    if(reasonsForSmoking) {
+                        // Build a response addressing all reasons_for_smoking
+                        resp += dedupe(reasonsForSmoking.map(reason => {
+                            switch (reason) {
+                                case 'addiction':
+                                    return 'Addiction is an extremely common issue among smokers, '
+                                        + 'and is very difficult to break';
+                                case 'cool':
+                                case 'pleasure':
+                                    return 'Although it may seem fun initially, '
+                                        + (this.userData.smokeOrVape === 'vape' ? 'vaping' : 'smoking')
+                                        + ' is not worth it and will quickly cause problems in your life';
+                                case 'school':
+                                case 'depression':
+                                case 'stress':
+                                    return 'Many people in similar situations start '
+                                        + (this.userData.smokeOrVape === 'vape' ? 'vaping' : 'smoking')
+                                        + ' to try to cope with what they are going through in life';
+                                case 'friends':
+                                    return 'If your friends ' + this.userData.smokeOrVape
+                                        + ', it may be even harder for you to stop';
+                                default:
+                                    console.error('Unhandled reason for smoking! Reason is: ', reason);
+                                    return '';
+                            }
+                        }).filter(Boolean)).join('. ') + '. ';
                     }
-                    if(reasonForQuitting != null) {
-                        resp += 'You want to quit smoking because of '
-                        + this.userData.reasonForQuitting + '. '
+
+                    if(reasonsForQuitting != null) {
+                        // Build a response addressing all reasons_for_quitting
+                        resp += dedupe(reasonsForQuitting.map(reason => {
+                            switch (reason) {
+                                case 'hate it':
+                                    return 'I\'m glad that you are fed up with '
+                                        + (this.userData.smokeOrVape === 'vape' ? 'vaping' : 'smoking')
+                                        + '!';
+                                case 'expensive':
+                                    return (this.userData.smokeOrVape === 'vape' ? 'Vaping' : 'Smoking')
+                                        + ' is much more expensive than most people realize. Quitting can'
+                                        + ' save you a lot of money'
+                                case 'others':
+                                    return 'It\'s great to hear that there people in your life motivating you '
+                                        + 'to quit';
+                                case 'sick':
+                                    return 'I\'m sorry that you are feeling sick. I hope that you will feel much '
+                                        + 'better after quitting!';
+                                default:
+                                    console.error('Unhandled reason for smoking! Reason is: ', reason);
+                                    return '';
+                            }
+                        }).filter(Boolean)).join('. ') + '. ';
                     }
-                    resp += 'Next, let\'s decide on a quit date.';
+                    resp += 'I think now is a good time for you to set a quit date.';
 
                     return {
                         response: resp,
@@ -403,7 +454,7 @@ const SECTIONS = {
                         return errorResponse;
                     }
                     // Store quitting aids as an array of values
-                    this.userData.successfulQuittingAids = quitting_aids.map(ent => ent.value);
+                    this.userData.successfulQuittingAids = uniqueValues(quitting_aids);
                 }
                 //TODO: additional questions and coaching
             }
