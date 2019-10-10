@@ -273,7 +273,7 @@ const SECTIONS = {
                 }
             },
         ],
-        next: 'set_quit_date' //TODO: Should we ask if the user wants to set a quit date right now?
+        next: 'set_quit_date'
     },
     set_quit_date: {
         name: 'set_quit_date',
@@ -348,7 +348,7 @@ const SECTIONS = {
             {
                 name: 'quit_date_passed',
                 prompt: 'Hey it looks like your quit date has passed, how did it go?',
-                type: SLOT_TYPES.OPEN_ENDED, //TODO: use wit.ai to parse out different "slots" of data to form a response
+                type: SLOT_TYPES.OPEN_ENDED,
                 useWit: true,
                 onResponse(input, witResponse) {
                     const errorResponse = {
@@ -366,8 +366,6 @@ const SECTIONS = {
                         return 'quit_date_passed_unclear_response';
                     }
 
-                    //TODO: what if the person says something like "It didn't go well, I ended up relapsing, but I'm optimistic about trying again!"
-                    //In other words, negative for current attempt but positive for future attempts/overall. Need to tell the difference
                     if (outcome[0].value === 'positive') {
                         // 'positive' outcome indicates that the user successfully quit.
                         // TODO: coaching and emotion parsing
