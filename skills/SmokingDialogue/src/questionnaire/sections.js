@@ -280,7 +280,11 @@ const SECTIONS = {
         questions: [
             {
                 name: 'quit_date',
-                prompt: 'By which date would you like to quit?',
+                prompt() {
+                    return 'By which date would you like to be done with '
+                        + (this.userData.smokeOrVape === 'vape' ? 'vaping' : 'smoking')
+                        + '?';
+                },
                 type: SLOT_TYPES.OPEN_ENDED,
                 useWit: true,
                 onResponse(input, witResponse) {
@@ -292,7 +296,20 @@ const SECTIONS = {
                         return errorResponse;
                     }
 
-                    const {quit_date} = witResponse.entities;
+                    const {no, quit_date} = witResponse.entities;
+
+                    // If the user doesn't know when they want to quit
+                    if (no) {
+                        return {
+                            reprompt: true,
+                            response: 'Setting a quit date is the first step on the journey to quitting. '
+                                + 'The best quit date is one that will motivate you '
+                                + 'to stop soon but still give you enough time to ease off. '
+                                + 'It doesn\'t have to be set in stone and can be changed later. '
+                                + 'When do you think you would like to quit?'
+                        };
+                    }
+
                     if (quit_date == null) {
                         return errorResponse;
                     }
