@@ -24,84 +24,63 @@ const SECTIONS = {
     __main__() {
         
          let {name} = this.userData;
+         //let {currentMood} = this.context;
          if (!name) {
              return 'firstTime';
          }
         
-
-        // // Convert quitDate to Date if it is not already
-        // if (typeof quitDate === 'string') {
-        //     quitDate = new Date(quitDate);
-        // }
-
-        // // Check if quit date has passed
-        // if (Date.now() > quitDate.getTime()) {
-        //     return 'quit_date_passed';
-        // }
-
-        // return 'quit_date_upcoming';
         return 'check_in';
     },
-
-    // set_quit_date: {
-    //     name: 'set_quit_date',
-    //     questions: [
-    //         {
-    //             name: 'quit_date',
-    //             prompt: 'By which date would you like to quit?',
-    //             type: SLOT_TYPES.OPEN_ENDED,
-    //             useWit: true,
-    //             onResponse(input, witResponse) {
-    //                 const errorResponse = { response: 'Sorry, I didn\'t understand that.', next: 'onboarding' };
-    //                 if (witResponse == null || witResponse.entities == null) {
-    //                     return errorResponse;
-    //                 }
-    //                 console.log('Got response from Wit API!', JSON.stringify(witResponse));
-
-    //                 const {quit_date} = witResponse.entities;
-    //                 if (quit_date == null) {
-    //                     return errorResponse;
-    //                 }
-
-    //                 const dateStr = quit_date[0].value;
-    //                 if (quit_date == null) {
-    //                     return errorResponse;
-    //                 }
-
-    //                 const date = new Date(dateStr);
-    //                 console.log('Raw date: ', dateStr, ", parsed: ", date);
-    //                 if (date.getTime() <= Date.now()) {
-    //                     return {
-    //                         response: 'Sorry, I think that date is in the past.',
-    //                         next: 'onboarding',
-    //                     }
-    //                 }
-
-    //                 this.context.quitDate = date;
-    //                 this.userData.quitDate = date;
-    //             }
-    //         }
-    //     ],
-    //     next: ''
-    // },
 
     firstTime: {
         name: 'firstTime',
         questions: [
             {
                 name: 'getName',
-                 prompt: 'Hi, I am your College Buddy, nice to meet you. First, what can I call you when speaking with you?',
+                 prompt: 'Hi, I\'m your College Buddy. It\'s so nice to meet you. I\'m here to help you get through diffcult times, especially academic issues. I have been designed by college students just like you, who share similar struggles. First, what can I call you when speaking with you?',
                  type: SLOT_TYPES.OPEN_ENDED,
                  useWit: false,
                  onResponse(input, witResponse) {
                     this.userData.name = input;
                     this.context.name = input;
-                    return 'check_in';
+                    return 'moreInfo';
                  }    
              }
          ],
          next: ''
      },
+    
+    moreInfo: {
+        name: 'moreInfo',
+        questions: [
+            {
+                name: 'moreInfo',
+                prompt() { 
+                    return 'Hey, '
+                        + (this.userData.name)
+                        + ' Because this is the first time we are meeting, would you like to see more information about how I work?';
+                },
+                 type: SLOT_TYPES.YES_NO,
+                 useWit: false,
+                 onResponse(input, witResponse) {
+                    if(input==='yes'){
+                        return {
+                            response: 'I\'m glad that you want to learn more. Essentially every time you want to talk to me, I\'ll ask you how you are feeling and try to make you feel better. '
+                            + 'For example, if you said you are feeling stressed, I could help you put things into perspective and figure out what is causing you feel that way.'
+                            + 'So let\'s give it a try, shall we?',
+                        };
+                    }
+                    else{
+                        return {
+                            response: 'Okay, let\'s jump right in!',
+                        };
+                    }          
+                 }    
+             }
+         ],
+         next: 'check_in'
+     },
+
     check_in: {
         name: 'check_in',
         questions: [
@@ -118,10 +97,13 @@ const SECTIONS = {
                 useWit: true,
                 onResponse(input, witResponse) {
                     const errorResponse = { response: 'Sorry, I didn\'t understand that.', next: 'check_in' };
-
+                
                     if (witResponse != null) {
                         console.log('Got response from Wit API!', JSON.stringify(witResponse));
                         const {mood} = witResponse.entities;
+                        this.context.currentMood = input;
+                        //console.log('mood is ', input);
+                        
                         if (mood == null) {
                             return errorResponse;
                         }
@@ -142,10 +124,13 @@ const SECTIONS = {
         questions: [
             {
                 name: 'negative',
-                prompt: 'Tell me more.',
+                prompt(){ 
+                    return 'I\'m sorry you feel '+ (this.context.currentMood) +'. Can you tell me a little bit about what\'s going on?';
+                },
                 type: SLOT_TYPES.OPEN_ENDED,
                 useWit: true,
                 onResponse(input, witResponse) {
+                    console.log('context is ', this.context.currentMood);
                     if (witResponse != null) {
                         console.log('Got response from Wit API!', JSON.stringify(witResponse));
                         const errorResponse = { response: 'Sorry, I didn\'t understand that.', next: 'check_in' };
@@ -180,53 +165,6 @@ const SECTIONS = {
                         if(this.context.courseMaterials != null) {return 'tempCourseMaterials';}
                         if(this.context.timeMan != null) {return 'tempTimeManagement';}
                         if(this.context.sleep != null) {return 'tempSleep';}
-
-                        
-/*
-                        const issueStr = issues[0].value;
-                        // first set the appropriate contexts
-                        if (issueStr == "exam") {
-                            this.context.exam = "exams";
-                        }
-                        else if (issueStr == "course_material") {
-                            this.context.courseMaterials = "course materials";
-                        }
-                        else if (issueStr == "time_management") {
-                            this.context.timeMan = "time managment";
-                        }
-                        else {
-                        }
-
-                        const issueStr2 = issues[1].value;
-                        // first set the appropriate contexts
-                        if (issueStr2 == "exam") {
-                            this.context.exam = "exams";
-                        }
-                        else if (issueStr2 == "course_material") {
-                            this.context.courseMaterials = "course materials";
-                        }
-                        else if (issueStr2 == "time_management") {
-                            this.context.timeMan = "time managment";
-                        }
-                        else {
-                        }
-*/
-
-/*
-                        // now choose where to return to
-                        if ((issueStr == "exam") || (issueStr2 == "exam")) {
-                            return 'tempExam';
-                        }
-                        else if ((issueStr == "course_material") || (issueStr2 == "course_material")) {
-                            return 'tempCourseMaterials';
-                        }
-                        else if ((issueStr == "time_management") || (issueStr2 == "time_management")) {
-                            return 'tempTimeManagement';
-                        }
-                        else {
-                            return 'contactCenter';
-                        }
-*/
                     }
                 }
             },
@@ -266,12 +204,8 @@ const SECTIONS = {
         questions: [
             {
                 name: 'exam',
-                prompt: 'Exams are naturally a stressful event. Good resources to consider are tutors and '
-                + 'the center for academic success.',
-                /*prompt: 'Test anxiety is a very common problem among students, so know that you\'re not alone. '
-                + 'Good resources to consider when struggling with test anxiety or test performance are tutors and '
-                + 'the center for academic success.'
-                + 'Those resources will help you to manage your time and help you understand the material prior to your exams. ',*/
+                prompt: 'Ah, Exams. Even though exams seem so important, your entire future doesn\'t depend on them. Don\'t give a test the power to define you!',
+                
                 type: SLOT_TYPES.OPEN_ENDED,
                 onResponse(input) {
                     if (this.context.courseMaterials == "course materials") {
@@ -297,7 +231,7 @@ const SECTIONS = {
         questions: [
             {
                 name: 'course_materials',
-                prompt: 'College courses are a challenge! Try to attend office hours and finding a group of classmates to study with.',
+                prompt: 'I never heard anyone say college is easy. Try to attend office hours and finding a group of classmates to study with.',
                 /*prompt: 'Not understanding content is a common issue, the courses are supposed to be challenging. '
                 + 'A few things that students find helpful when they don\'t understand material, are finding a tutor, '
                 + 'attending office hours, and finding a group of classmates to study with.',*/
@@ -322,14 +256,8 @@ const SECTIONS = {
         questions: [
             {
                 name: 'time_management',
-                prompt: 'Managing time well is one of the best skills a student can develop.'
-                + ' try to '
-                + ' create a planner for yourself and prioritize a list of things '
-                + ' that you need to do.',
-                /*prompt: 'Managing your time is one of the most difficult aspects of college. In order to keep track of '
-                + ' everything you need to accomplish try to create a planner for yourself and prioritize a list of things '
-                + ' that you need to do. Make the list as specific as possible.  Students often see that when you write everything'
-                + ' that must be done down on paper, the list seems more manageable than it was in your head.',*/
+                prompt: 'Don\'t you wish there was more time in a day? That probably won\'t happen. '
+                + ' Instead of putting things off until later and feeling guilty about it, try to start your work now. ',
                 type: SLOT_TYPES.OPEN_ENDED,
                 onResponse(input) {
                     if (this.context.sleep == "sleeping") {
@@ -350,7 +278,7 @@ const SECTIONS = {
         questions: [
             {
                 name: 'sleep',
-                prompt: 'Sleep is one of the most important parts of life. Before bed, try to relax in order to get the best sleep possible.',
+                prompt: 'I know that sleep is super important to me too. Before bed, try to relax and imagine you are in your happy place, whether that\'s a beach, a hotel, a spa, or even F M L.',
                 /*prompt: 'Managing your time is one of the most difficult aspects of college. In order to keep track of '
                 + ' everything you need to accomplish try to create a planner for yourself and prioritize a list of things '
                 + ' that you need to do. Make the list as specific as possible.  Students often see that when you write everything'
@@ -373,13 +301,12 @@ const SECTIONS = {
                 name: 'first_top_trigger',
                 // TODO: Can this be customized to list *what the client likes about smoking*
                 prompt() { 
-                    var response = "";
+                    var response = "It was a pleasure speaking with you today. ";
                     if(this.context.exams != null) {response += this.context.exams + ' ';}
                     if(this.context.courseMaterials != null) {response += this.context.courseMaterials + ' ';}
                     if(this.context.timeMan != null) {response += this.context.timeMan + ' ';}
                     if(this.context.sleep != null) {response += this.context.sleep + ' ';}
                     return 'Thanks for sharing your current struggles with '
-                        //+ (this.context.exam)  + ' and ' + (this.context.timeMan)
                         + response
                         + '. Next week we can check in on how those are going for you.';
                 },
