@@ -49,10 +49,10 @@ const SECTIONS = {
         if (onboarded) {
             let phrase = 'Ready to get started?';
             if (smokeOrVape === 'vape') {
-                phrase = 'Ready to kick that vaping habit?';
+                phrase = 'Ready to talk to me about your vaping habit?';
             }
             if (smokeOrVape === 'smoke') {
-                phrase = 'Ready to kick that smoking habit?';
+                phrase = 'Ready to talk to me about your smoking habit?';
             }
             return 'Welcome back! ' + phrase;
         }
