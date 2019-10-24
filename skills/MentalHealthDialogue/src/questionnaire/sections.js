@@ -154,6 +154,35 @@ const SECTIONS = {
                             return errorResponse;
                         }
 
+                        for(var i = 0; i < issues.length; i++) {
+                            const issueStr = issues[i].value;
+                            if (issueStr == "exam") {
+                                this.context.exams = "exams";
+                                //console.log('ONE context.exams is ' + this.context.exams);
+                            }
+                            else if (issueStr == "course_material") {
+                                this.context.courseMaterials = "course materials";
+                                //console.log('TWOO context.materials is ' + this.context.courseMaterials);
+                            }
+                            else if (issueStr == "time_management") {
+                                this.context.timeMan = "time managment";
+                            }
+                            else if (issueStr == "sleep") {
+                                this.context.sleep = "sleeping";
+                            }
+                            else {
+                            }
+                            //console.log('issueStr is ' + issueStr);
+                        }
+
+                
+                        if(this.context.exams != null) {return 'tempExam';}
+                        if(this.context.courseMaterials != null) {return 'tempCourseMaterials';}
+                        if(this.context.timeMan != null) {return 'tempTimeManagement';}
+                        if(this.context.sleep != null) {return 'tempSleep';}
+
+                        
+/*
                         const issueStr = issues[0].value;
                         // first set the appropriate contexts
                         if (issueStr == "exam") {
@@ -181,7 +210,9 @@ const SECTIONS = {
                         }
                         else {
                         }
+*/
 
+/*
                         // now choose where to return to
                         if ((issueStr == "exam") || (issueStr2 == "exam")) {
                             return 'tempExam';
@@ -195,7 +226,7 @@ const SECTIONS = {
                         else {
                             return 'contactCenter';
                         }
-
+*/
                     }
                 }
             },
@@ -235,7 +266,7 @@ const SECTIONS = {
         questions: [
             {
                 name: 'exam',
-                prompt: 'Exams are naturally a stressful event. Good resources to consider when struggling with test anxiety or test performance are tutors and '
+                prompt: 'Exams are naturally a stressful event. Good resources to consider are tutors and '
                 + 'the center for academic success.',
                 /*prompt: 'Test anxiety is a very common problem among students, so know that you\'re not alone. '
                 + 'Good resources to consider when struggling with test anxiety or test performance are tutors and '
@@ -248,6 +279,9 @@ const SECTIONS = {
                     }
                     else if (this.context.timeMan == "time managment") {
                         return 'tempTimeManagement';
+                    }
+                    else if (this.context.sleep == "sleeping") {
+                        return 'tempSleep';
                     }
                     else {
                         return 'ending';              
@@ -263,8 +297,7 @@ const SECTIONS = {
         questions: [
             {
                 name: 'course_materials',
-                prompt: 'College course are a challenge! A few things that students find helpful when they don\'t understand material are finding a tutor, '
-                + 'attending office hours, and finding a group of classmates to study with.',
+                prompt: 'College courses are a challenge! Try to attend office hours and finding a group of classmates to study with.',
                 /*prompt: 'Not understanding content is a common issue, the courses are supposed to be challenging. '
                 + 'A few things that students find helpful when they don\'t understand material, are finding a tutor, '
                 + 'attending office hours, and finding a group of classmates to study with.',*/
@@ -272,6 +305,9 @@ const SECTIONS = {
                 onResponse(input) {
                     if (this.context.timeMan == "time managment") {
                         return 'tempTimeManagement';
+                    }
+                    else if (this.context.sleep == "sleeping") {
+                        return 'tempSleep';
                     }
                     else {
                         return 'ending';              
@@ -287,9 +323,34 @@ const SECTIONS = {
             {
                 name: 'time_management',
                 prompt: 'Managing time well is one of the best skills a student can develop.'
-                + ' In order to keep track of everything you need to accomplish try to '
+                + ' try to '
                 + ' create a planner for yourself and prioritize a list of things '
-                + ' that you need to do. Make the list as specific as possible.',
+                + ' that you need to do.',
+                /*prompt: 'Managing your time is one of the most difficult aspects of college. In order to keep track of '
+                + ' everything you need to accomplish try to create a planner for yourself and prioritize a list of things '
+                + ' that you need to do. Make the list as specific as possible.  Students often see that when you write everything'
+                + ' that must be done down on paper, the list seems more manageable than it was in your head.',*/
+                type: SLOT_TYPES.OPEN_ENDED,
+                onResponse(input) {
+                    if (this.context.sleep == "sleeping") {
+                        return 'tempSleep';
+                    }
+                    else {
+                        //return 'check_in' 
+                        return 'ending';       
+                    }       
+                }
+            },
+        ],
+        next: null
+    },
+
+    tempSleep: {
+        name: 'tempSleep',
+        questions: [
+            {
+                name: 'sleep',
+                prompt: 'Sleep is one of the most important parts of life. Before bed, try to relax in order to get the best sleep possible.',
                 /*prompt: 'Managing your time is one of the most difficult aspects of college. In order to keep track of '
                 + ' everything you need to accomplish try to create a planner for yourself and prioritize a list of things '
                 + ' that you need to do. Make the list as specific as possible.  Students often see that when you write everything'
@@ -303,6 +364,8 @@ const SECTIONS = {
         ],
         next: null
     },
+
+
     ending: {
         name: 'ending',
         questions: [
@@ -310,8 +373,14 @@ const SECTIONS = {
                 name: 'first_top_trigger',
                 // TODO: Can this be customized to list *what the client likes about smoking*
                 prompt() { 
+                    var response = "";
+                    if(this.context.exams != null) {response += this.context.exams + ' ';}
+                    if(this.context.courseMaterials != null) {response += this.context.courseMaterials + ' ';}
+                    if(this.context.timeMan != null) {response += this.context.timeMan + ' ';}
+                    if(this.context.sleep != null) {response += this.context.sleep + ' ';}
                     return 'Thanks for sharing your current struggles with '
-                        + (this.context.exam)  + ' and ' + (this.context.timeMan)
+                        //+ (this.context.exam)  + ' and ' + (this.context.timeMan)
+                        + response
                         + '. Next week we can check in on how those are going for you.';
                 },
                 type: SLOT_TYPES.OPEN_ENDED
