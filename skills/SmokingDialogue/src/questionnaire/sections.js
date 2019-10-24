@@ -507,23 +507,24 @@ const SECTIONS = {
                     }
 
                     // Parse out the type of emotion said and build the response string accordingly.
-                    const feeling = emotion[0].value;
-                    this.userData.quitDateUpcomingFeeling = feeling;
+                    const feelings = uniqueValues(emotion);
+                    this.userData.quitDateUpcomingFeelings = feelings;
 
-                    let prefix = '';
-                    if (feeling === 'positive') {
-                        prefix = randomChoice([
-                            'Awesome! I\'m looking forward to seeing your progress!',
-                            'It\'s great to hear that you are thinking positive!',
-                            'I\'m so glad to hear that you are optimistic!'
-                        ]);
-                    } else {
-                        prefix = randomChoice([
+                    const prefixes = [];
+                    if (feelings.includes('negative') || feelings.includes('nervous')) {
+                        prefixes.push(randomChoice([
                             'Be brave.',
                             'No need to feel nervous.',
                             'Don\'t dread quitting.'
-                        ]);
+                        ]));
                     }
+                    if (feelings.includes('positive')) {
+                        prefixes.push(randomChoice([
+                            'It\'s great to hear that you are thinking positive!',
+                            'I\'m so glad to hear that you are optimistic!'
+                        ]));
+                    }
+                    const prefix = prefixes.join(" ");
 
                     const suffix = randomChoice([
                         'I will be here for you all the time. You can also call '
