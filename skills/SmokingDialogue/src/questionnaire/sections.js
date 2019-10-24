@@ -76,6 +76,7 @@ const SECTIONS = {
         // Convert quitDate to Date if it is not already
         if (typeof quitDate === 'string') {
             quitDate = new Date(quitDate);
+            this.userData.quitDate = quitDate;
         }
 
         // Check if quit date has passed
