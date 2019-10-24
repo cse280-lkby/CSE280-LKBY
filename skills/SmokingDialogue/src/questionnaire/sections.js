@@ -11,6 +11,10 @@ function uniqueValues(witEntity) {
     return dedupe(witEntity.map(ent => ent.value));
 }
 
+function randomChoice(list) {
+    return list[Math.floor(Math.random() * list.length)];
+}
+
 /*
  * Sections:
  *  must contain a 'name', a list of 'questions' (at least 1), and can have a 'next'.
@@ -506,16 +510,37 @@ const SECTIONS = {
                     const feeling = emotion[0].value;
                     this.userData.quitDateUpcomingFeeling = feeling;
 
-                    let res = 'You\'re going to do great!';
+                    let prefix = '';
                     if (feeling === 'positive') {
-                        res = 'Awesome! I\'m looking forward to seeing your progress! ' + res;
-                    } else if(feeling === 'nervous') {
-                        res = 'No need to feel nervous. ' + res;
+                        prefix = randomChoice([
+                            'Awesome! I\'m looking forward to seeing your progress!',
+                            'It\'s great to hear that you are thinking positive!',
+                            'I\'m so glad to hear that you are optimistic!'
+                        ]);
                     } else {
-                        res = 'I\'ll be here for you every step of they way. ' + res;
+                        prefix = randomChoice([
+                            'Be brave.',
+                            'No need to feel nervous.',
+                            'Don\'t dread quitting.'
+                        ]);
                     }
+
+                    const suffix = randomChoice([
+                        'I will be here for you all the time. You can also call '
+                            + '1 800 Quit Now to talk to human coaches if you are struggling.',
+                        'If you need to talk to a human counselor, call 1 800 Quit Now. '
+                            + 'Start to reduce the amount of times you '
+                            + this.userData.smokeOrVape
+                            + ' today. Good luck!',
+                        'It is never too late to try to quit. I am always here for you. You '
+                            + 'can also call 1 800 Quit Now to speak to a human counselor.',
+                        'Quitting is difficult but you can do it. Take it one day at a time. '
+                            + 'challenge yourself to cut down on the amount you '
+                            + this.userData.smokeOrVape + ' before you quit.'
+                    ]);
+
                     return {
-                        response: res,
+                        response: prefix + ' ' + suffix,
                         next: 'quitting_aids'
                     }
                 }
