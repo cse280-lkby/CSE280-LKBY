@@ -313,12 +313,11 @@ const SECTIONS = {
                     // If the user doesn't know when they want to quit
                     if (no) {
                         return {
-                            reprompt: true,
                             response: 'Setting a quit date is the first step on the journey to quitting. '
                                 + 'The best quit date is one that will motivate you '
                                 + 'to stop soon but still give you enough time to ease off. '
-                                + 'It doesn\'t have to be set in stone and can be changed later. '
-                                + 'When do you think you would like to quit?'
+                                + 'Take your time deciding when you want to quit by and let me know later!',
+                            next: ''
                         };
                     }
 
@@ -544,12 +543,23 @@ const SECTIONS = {
                             + 'can also call 1 800 Quit Now to speak to a human counselor.',
                         'Quitting is difficult but you can do it. Take it one day at a time. '
                             + 'challenge yourself to cut down on the amount you '
-                            + this.userData.smokeOrVape + ' before you quit.'
+                            + this.userData.smokeOrVape + ' before you quit.',
+                        'Remember, whenever cravings hit, take deep breaths. Stay busy and drink '
+                            + 'plenty of water.',
+                        'One strategy that might help is to think about or write down all the bad things '
+                            + 'that you don\'t miss: for example, I don\'t miss the way it makes me smell. '
+                            + 'I don\'t miss the difficulty I have breathing after ' 
+                            + (this.userData.smokeOrVape === 'vape' ? 'vaping' : 'smoking') + '.',
+                        'Quitting is difficult but you can do it. Take it one day at a time. Challenge yourself '
+                            + 'to cut down on the amount in regular intervals leading up to your quit date.'
                     ]);
-
+                    let nextSection = 'quitting_aids'
+                    if (this.userData.quittingAid) {
+                        nextSection = 'planning'
+                    }
                     return {
                         response: prefix + ' ' + suffix,
-                        next: 'quitting_aids'
+                        next: nextSection
                     }
                 }
             },
@@ -605,11 +615,27 @@ const SECTIONS = {
                 name: 'top_triggers',
                 // TODO: Can this be customized to list *what the client likes about smoking*
                 prompt: 'Let\'s do some plannning for the situations where you usually smoke. What are some of your top triggers?',
-                type: SLOT_TYPES.OPEN_ENDED
+                type: SLOT_TYPES.OPEN_ENDED,
+                onResponse(input) {
+                    this.userData.topTriggers = input;
+                    return {
+                        response: 'It was great talking with you! I look forward to hearing from you soon!',
+                        next: ''
+                    }
+                }
             },
         ],
         next: ''
     },
+    // // Goodbye section to say farewell to the user
+    // quit_date_upcoming_goodbye: {
+    //     name: 'quit_date_upcoming_goodbye',
+    //     questions: [
+    //         {
+    //             name:
+    //         },
+    //     ],
+    // },
 
     __version__: '1',
 };
