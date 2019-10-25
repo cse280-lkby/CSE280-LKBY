@@ -226,12 +226,19 @@ const SECTIONS = {
                                     return 'Addiction is an extremely common issue among smokers, '
                                         + 'and is very difficult to break';
                                 case 'cool':
+                                    return (this.userData.smokeOrVape === 'vape' ? 'vaping' : 'smoking')
+                                        + ' is often portrayed as really cool, which can make it hard to resist.';
                                 case 'pleasure':
                                     return 'Although it may seem fun initially, '
                                         + (this.userData.smokeOrVape === 'vape' ? 'vaping' : 'smoking')
-                                        + ' is not worth it and will quickly cause problems in your life';
+                                        + ' is not worth it and will quickly cause problems in your life.';
                                 case 'school':
+                                    return 'School is a common social situation where peer pressure has a '
+                                        + 'lot of influence.';
                                 case 'depression':
+                                    return (this.userData.smokeOrVape === 'vape' ? 'Vaping' : 'Smoking')
+                                        + 'is often used as a way to cope with depression, '
+                                        + 'but it\'s important to not become too dependent on it!';
                                 case 'stress':
                                     return 'Many people in similar situations start '
                                         + (this.userData.smokeOrVape === 'vape' ? 'vaping' : 'smoking')
