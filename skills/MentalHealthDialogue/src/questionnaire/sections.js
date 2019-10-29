@@ -66,7 +66,7 @@ const SECTIONS = {
                     if(input==='yes'){
                         return {
                             response: 'I\'m glad that you want to learn more. Essentially every time you want to talk to me, I\'ll ask you how you are feeling and try to make you feel better. '
-                            + 'For example, if you said you are feeling stressed, I could help you put things into perspective and figure out what is causing you feel that way.'
+                            + 'For example, if you said you are feeling stressed, I could help you put things into perspective and figure out what is causing you feel that way. '
                             + 'So let\'s give it a try, shall we?',
                         };
                     }
@@ -279,10 +279,6 @@ const SECTIONS = {
             {
                 name: 'sleep',
                 prompt: 'I know that sleep is super important to me too. Before bed, try to relax and imagine you are in your happy place, whether that\'s a beach, a hotel, a spa, or even F M L.',
-                /*prompt: 'Managing your time is one of the most difficult aspects of college. In order to keep track of '
-                + ' everything you need to accomplish try to create a planner for yourself and prioritize a list of things '
-                + ' that you need to do. Make the list as specific as possible.  Students often see that when you write everything'
-                + ' that must be done down on paper, the list seems more manageable than it was in your head.',*/
                 type: SLOT_TYPES.OPEN_ENDED,
                 onResponse(input) {
                     //return 'check_in' 
@@ -301,14 +297,14 @@ const SECTIONS = {
                 name: 'first_top_trigger',
                 // TODO: Can this be customized to list *what the client likes about smoking*
                 prompt() { 
-                    var response = "It was a pleasure speaking with you today. ";
+                    var response = "";
                     if(this.context.exams != null) {response += this.context.exams + ' ';}
                     if(this.context.courseMaterials != null) {response += this.context.courseMaterials + ' ';}
                     if(this.context.timeMan != null) {response += this.context.timeMan + ' ';}
                     if(this.context.sleep != null) {response += this.context.sleep + ' ';}
-                    return 'Thanks for sharing your current struggles with '
+                    return 'It was a pleasure speaking with you today. Thanks for sharing your current struggles with '
                         + response
-                        + '. Next week we can check in on how those are going for you.';
+                        + '. Next time we can check in on how those are going for you.';
                 },
                 type: SLOT_TYPES.OPEN_ENDED
             }
