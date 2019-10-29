@@ -11,6 +11,10 @@ function uniqueValues(witEntity) {
     return dedupe(witEntity.map(ent => ent.value));
 }
 
+function randomChoice(list) {
+    return list[Math.floor(Math.random() * list.length)];
+}
+
 /*
  * Sections:
  *  must contain a 'name', a list of 'questions' (at least 1), and can have a 'next'.
@@ -49,10 +53,10 @@ const SECTIONS = {
         if (onboarded) {
             let phrase = 'Ready to get started?';
             if (smokeOrVape === 'vape') {
-                phrase = 'Ready to kick that vaping habit?';
+                phrase = 'Ready to talk to me about your vaping habit?';
             }
             if (smokeOrVape === 'smoke') {
-                phrase = 'Ready to kick that smoking habit?';
+                phrase = 'Ready to talk to me about your smoking habit?';
             }
             return 'Welcome back! ' + phrase;
         }
@@ -76,6 +80,7 @@ const SECTIONS = {
         // Convert quitDate to Date if it is not already
         if (typeof quitDate === 'string') {
             quitDate = new Date(quitDate);
+            this.userData.quitDate = quitDate;
         }
 
         // Check if quit date has passed
@@ -221,12 +226,19 @@ const SECTIONS = {
                                     return 'Addiction is an extremely common issue among smokers, '
                                         + 'and is very difficult to break';
                                 case 'cool':
+                                    return (this.userData.smokeOrVape === 'vape' ? 'vaping' : 'smoking')
+                                        + ' is often portrayed as really cool, which can make it hard to resist.';
                                 case 'pleasure':
                                     return 'Although it may seem fun initially, '
                                         + (this.userData.smokeOrVape === 'vape' ? 'vaping' : 'smoking')
-                                        + ' is not worth it and will quickly cause problems in your life';
+                                        + ' is not worth it and will quickly cause problems in your life.';
                                 case 'school':
+                                    return 'School is a common social situation where peer pressure has a '
+                                        + 'lot of influence.';
                                 case 'depression':
+                                    return (this.userData.smokeOrVape === 'vape' ? 'Vaping' : 'Smoking')
+                                        + 'is often used as a way to cope with depression, '
+                                        + 'but it\'s important to not become too dependent on it!';
                                 case 'stress':
                                     return 'Many people in similar situations start '
                                         + (this.userData.smokeOrVape === 'vape' ? 'vaping' : 'smoking')
@@ -347,7 +359,7 @@ const SECTIONS = {
         questions: [
             {
                 name: 'quit_date_passed',
-                prompt: 'Hey it looks like your quit date has passed, how did it go?',
+                prompt: 'I see that your quit date has passed, how did it go?',
                 type: SLOT_TYPES.OPEN_ENDED,
                 useWit: true,
                 onResponse(input, witResponse) {
@@ -358,33 +370,114 @@ const SECTIONS = {
                     if (witResponse == null || witResponse.entities == null) {
                         return errorResponse;
                     }
-                    const {outcome} = witResponse.entities;
+
+                    const {emotion, outcome, reasons_for_smoking} = witResponse.entities;
+                    const reasonsForSmoking = uniqueValues(reasons_for_smoking);
+
+                    let resp = '';
+
+                    if (emotion && emotion[0].value === 'positive') {
+                        resp += randomChoice([
+                            'That\'s the right attitude to have!'
+                        ]);
+                    }
+                    else if ((emotion && emotion[0].value === 'negative')
+                        || (emotion && emotion[0].value === 'nervous')) {
+                        if (!reasonsForSmoking.includes('depression')) {
+                            reasonsForSmoking.push('depression');
+                        }
+                    }
+
+                    if (reasons_for_smoking != null) {
+                        resp += dedupe(reasonsForSmoking.map(reason => {
+                            switch (reason) {
+                                case 'addiction':
+                                    return randomChoice([
+                                        'Whenever cravings hit, take deep breaths, count to five, exhale, and say, '
+                                            + '"N-O-P-E, Not One Puff Ever".',
+                                        'Tell yourself "this too shall pass" when your next craving happens.'
+                                    ]);
+                                case 'depression':
+                                    return randomChoice([
+                                        'Sorry to hear that you are feeling down.',
+                                        'Sorry to hear that you are having such a hard time.',
+                                        'Don\'t think like that. We are all insecure at some point.',
+                                        'Cheer up. Believe that you can do it.'
+                                    ]);
+                                case 'friends':
+                                    return randomChoice([
+                                        'See if you can avoid those friends who smoke.',
+                                        'Tell yourself "Not one puff ever. I will not accept any invitations '
+                                            + 'to smoke with my friends."'
+                                    ]);
+                                case 'stress':
+                                case 'school':
+                                    return 'Stressful situations may cause cravings, but you can overcome them.';
+                                case 'pleasure':
+                                    return '';
+                                default:
+                                    console.error('Unhandled reason for smoking! Reason is: ', reason);
+                                    return '';
+                            }
+                        }).filter(Boolean)).join(' ') + ' ';
+                    }
+
+                    resp += randomChoice([
+                        'You know this is not easy but you are doing it to enjoy better health.',
+                        'To help you get through this, you can start journaling about the bad things '
+                            + 'that you don\'t miss. For example: I don\'t miss the way I have '
+                            + 'difficulty breathing. I don\'t miss burning money.',
+                        'What you are feeling is normal. It may feel like you\'ve lost your best friend '
+                            + 'at first but stay positive and soon this feeling will pass. '
+                            + 'I\'m always here to help you if you want to talk.',
+                        'Take it one day, one hour, or one minute at a time. Never give up.',
+                        'Create a reward system for yourself for each day you stay smoke-free, like a savings '
+                            + 'jar. Put a paper inside that says, "I saved x dollars by not smoking today."',
+                        'Drink plenty of water. Stay busy. Try meditation or yoga or crossword puzzles. You '
+                            + 'can do this!'
+                    ]) + ' ';
+
                     if (outcome == null || outcome[0].confidence < .85) {
                         // Response was not understood properly. Redirect
                         // to a simple yes or no question 
                         console.error('Did not understand quit_date_passed response');
-                        return 'quit_date_passed_unclear_response';
+                        return {
+                            response: resp,
+                            next: 'quit_date_passed_unclear_response'
+                        };
                     }
 
                     if (outcome[0].value === 'positive') {
                         // 'positive' outcome indicates that the user successfully quit.
-                        // TODO: coaching and emotion parsing
+                        const prefix = randomChoice([
+                            'Congratulations!',
+                            'Congrats on quitting!',
+                            'Yay! I\'m so glad you are doing well.',
+                            'Great job.',
+                            'Congratulations. I\'m happy for you.'
+                        ]);
+                        resp += 'Remember that I\'m always here to talk if needed. I look forward to checking in '
+                            + 'on your progress again soon!';
+
                         return {
-                            response: 'I\'m so glad to hear that you were able to quit! '
-                                + 'If you ever need someone to talk to I will always be here. '
-                                + 'I\'d like to ask you some questions about your experience so that '
-                                + 'we may be able to help others in the future.',
-                            next: 'already_quit',
-                        }
+                            response: prefix + " " + resp,
+                            // next: 'already_quit',
+                        };
                     }
                     else {
                         // 'negative' outcome indicates a relapse
+                        const prefix = randomChoice([
+                            'Don\'t worry. Many have to quit several times before they succeed.',
+                            'Don\'t feel bad. Smoking is an addiction so be brave to tackle it.',
+                            'Don\'t be discouraged. Things happen and as long as you continue to '
+                                + 'try, you will succeed.',
+                            'Yay! I\'m so glad you are doing well.',
+                            'I\'m proud of your effort. As long as you don\'t stop trying it\'s all good.'
+                        ]);
+                        resp += "Lets get you set up with a new quit date.";
                         return {
-                            response: 'Don\'t feel bad! Quitting can be unbelievably hard. '
-                                + 'For most, it takes multiple attempts before they successfully quit. '
-                                + 'The best thing you can do is try again as soon as you feel ready. '
-                                + 'I know you can do it!',
-                            next: 'quit_attempt_failed',
+                            response: prefix + " " + resp,
+                            next: 'set_quit_date',
                         }
                     }
                 }
@@ -399,25 +492,17 @@ const SECTIONS = {
         questions: [
             {
                 name: 'quit_successfully',
-                prompt: 'Sorry, I\'m still learning and didn\'t understand that fully. '
-                    + 'Was your quit attempt successful?',
+                prompt: 'Do you want to set a new quit date?',
                 type: SLOT_TYPES.YES_NO,
                 onResponse(input) {
                     if (input === 'yes') {
                         return {
-                            response: 'I\'m so glad to hear that you were able to quit! '
-                                + 'If you ever need someone to talk to I will always be here. '
-                                + 'I\'d like to ask you some questions about your experience so that '
-                                + 'we may be able to help others in the future.',
-                            next: 'already_quit',
+                            next: 'set_quit_date',
                         }
                     } else {
                         return {
-                            response: 'Don\'t feel bad! Quitting can be unbelievably hard. '
-                                + 'For most, it takes multiple attempts before they successfully quit. '
-                                + 'The best thing you can do is try again as soon as you feel ready. '
-                                + 'I know you can do it!',
-                            next: 'quit_attempt_failed',
+                            response: 'Sounds good. Good luck on your journey. I will always be here for you if you need '
+                                + 'to talk.',
                         }
                     }
                 }
@@ -425,26 +510,26 @@ const SECTIONS = {
         ]
     },
 
-    quit_attempt_failed: {
-        name: 'quit_attempt_failed',
-        questions: [
-            {
-                name: 'quit_attempt_thoughts',
-                prompt: 'What was going through your head as you attempted to quit?',
-                type: SLOT_TYPES.OPEN_ENDED,
-                useWit: true,
-                onResponse(input, witResponse) {
-                    // TODO coach based on recognized responses
-                    return {
-                        response: 'I completely understand. That is a very common experience '
-                            + 'but I know you can do this. I think we should get you back on '
-                            + 'the wagon.',
-                        next: 'set_quit_date'
-                    };
-                }
-            }
-        ]
-    },
+    // quit_attempt_failed: {
+    //     name: 'quit_attempt_failed',
+    //     questions: [
+    //         {
+    //             name: 'quit_attempt_thoughts',
+    //             prompt: 'What was going through your head as you attempted to quit?',
+    //             type: SLOT_TYPES.OPEN_ENDED,
+    //             useWit: true,
+    //             onResponse(input, witResponse) {
+    //                 // TODO coach based on recognized responses
+    //                 return {
+    //                     response: 'I completely understand. That is a very common experience '
+    //                         + 'but I know you can do this. I think we should get you back on '
+    //                         + 'the wagon.',
+    //                     next: 'set_quit_date'
+    //                 };
+    //             }
+    //         }
+    //     ]
+    // },
 
     // If the user has already quit. Collects some data on what worked and didn't work in case they relapse.
     already_quit: {
@@ -502,19 +587,41 @@ const SECTIONS = {
                     }
 
                     // Parse out the type of emotion said and build the response string accordingly.
-                    const feeling = emotion[0].value;
-                    this.userData.quitDateUpcomingFeeling = feeling;
+                    const feelings = uniqueValues(emotion);
+                    this.userData.quitDateUpcomingFeelings = feelings;
 
-                    let res = 'You\'re going to do great!';
-                    if (feeling === 'positive') {
-                        res = 'Awesome! I\'m looking forward to seeing your progress! ' + res;
-                    } else if(feeling === 'nervous') {
-                        res = 'No need to feel nervous. ' + res;
-                    } else {
-                        res = 'I\'ll be here for you every step of they way. ' + res;
+                    const prefixes = [];
+                    if (feelings.includes('negative') || feelings.includes('nervous')) {
+                        prefixes.push(randomChoice([
+                            'Be brave.',
+                            'No need to feel nervous.',
+                            'Don\'t dread quitting.'
+                        ]));
                     }
+                    if (feelings.includes('positive')) {
+                        prefixes.push(randomChoice([
+                            'It\'s great to hear that you are thinking positive!',
+                            'I\'m so glad to hear that you are optimistic!'
+                        ]));
+                    }
+                    const prefix = prefixes.join(" ");
+
+                    const suffix = randomChoice([
+                        'I will be here for you all the time. You can also call '
+                            + '1 800 Quit Now to talk to human coaches if you are struggling.',
+                        'If you need to talk to a human counselor, call 1 800 Quit Now. '
+                            + 'Start to reduce the amount of times you '
+                            + this.userData.smokeOrVape
+                            + ' today. Good luck!',
+                        'It is never too late to try to quit. I am always here for you. You '
+                            + 'can also call 1 800 Quit Now to speak to a human counselor.',
+                        'Quitting is difficult but you can do it. Take it one day at a time. '
+                            + 'challenge yourself to cut down on the amount you '
+                            + this.userData.smokeOrVape + ' before you quit.'
+                    ]);
+
                     return {
-                        response: res,
+                        response: prefix + ' ' + suffix,
                         next: 'quitting_aids'
                     }
                 }
