@@ -117,7 +117,7 @@ const SECTIONS = {
                 }
             },
         ],
-        next: 'understanding_content'
+        next: ''
     },
     tempNegative: {
         name: 'tempNegative',
@@ -139,37 +139,50 @@ const SECTIONS = {
                             return errorResponse;
                         }
 
+                        // declare a string that we will append the responses to
+                        let resp = '';
+
                         for(var i = 0; i < issues.length; i++) {
                             const issueStr = issues[i].value;
                             if (issueStr == "exam") {
+                                // inside of each of the possible matches, add to the returned string
+                                resp += 'Ah, Exams. Even though exams seem so important, your entire future doesn\'t depend on them. Don\'t give a test the power to define you!';
+
                                 this.context.exams = "exams";
-                                //console.log('ONE context.exams is ' + this.context.exams);
                             }
                             else if (issueStr == "course_material") {
+                                resp += 'I never heard anyone say college is easy. Try to attend office hours and finding a group of classmates to study with.';
+
                                 this.context.courseMaterials = "course materials";
-                                //console.log('TWOO context.materials is ' + this.context.courseMaterials);
                             }
                             else if (issueStr == "time_management") {
+                                resp += 'Don\'t you wish there was more time in a day? That probably won\'t happen. '
+                                + ' Instead of putting things off until later and feeling guilty about it, try to start your work now. ';
+
                                 this.context.timeMan = "time managment";
                             }
                             else if (issueStr == "sleep") {
+                                resp += 'I know that sleep is super important to me too. Before bed, try to relax and imagine you are in your happy place, whether that\'s a beach, a hotel, a spa, or even F M L.';
+
                                 this.context.sleep = "sleeping";
                             }
                             else {
                             }
-                            //console.log('issueStr is ' + issueStr);
                         }
+                        // return the response, jump to another question
+                        return {response: resp};
 
-                
+                /*
                         if(this.context.exams != null) {return 'tempExam';}
                         if(this.context.courseMaterials != null) {return 'tempCourseMaterials';}
                         if(this.context.timeMan != null) {return 'tempTimeManagement';}
                         if(this.context.sleep != null) {return 'tempSleep';}
+                */
                     }
                 }
             },
         ],
-        next: null
+        next: 'breathing_exercise'
     },
     tempPositive: {
         name: 'tempPositive',
@@ -199,6 +212,39 @@ const SECTIONS = {
         ],
         next: null
     },
+    breathing_exercise: {
+        name: 'breathing_exercise',
+        questions: [
+            {
+                name: 'breathing_exercise',
+                prompt: 'Something I have found to be helpful when dealing with stress focussing on my breathing. Would you like to do a simple breathing exercise?',
+                type: SLOT_TYPES.YES_NO,
+                onResponse(input) {
+                    if(input==='yes'){
+                        return {
+                            response: 'Awesome! The purpose of this breathing exercise is to focus on your body and calm your mind with'
+                        + ' the steadiness of your relaxed breathing. I will count to 4 as you breathe in and then I will count to 7 as you'
+                        + ' slowly breathe out. Here we go   .'
+                        + ' Breathe in 2  3  4.'
+                        + ' And now slowly out  2 3 4 5 6 7.'
+                        + ' Now let\'s do that one more time, this time really feel your lungs fill with the air.'
+                        + ' Breathe in 2  3  4.'
+                        + ' And now slowly out  2 3 4 5 6 7.',
+                        };
+                    }
+                    else {
+                        return {
+                            response: 'That\'s fine, we can try that out a different day!',
+                        };
+                    }
+                }
+
+                
+            },
+        ],
+        next: 'ending'
+    },
+    /*
     tempExam: {
         name: 'tempExam',
         questions: [
@@ -226,15 +272,17 @@ const SECTIONS = {
         ],
         next: null
     },
+    */
+   /*
     tempCourseMaterials: {
         name: 'tempCourseMaterials',
         questions: [
             {
                 name: 'course_materials',
                 prompt: 'I never heard anyone say college is easy. Try to attend office hours and finding a group of classmates to study with.',
-                /*prompt: 'Not understanding content is a common issue, the courses are supposed to be challenging. '
-                + 'A few things that students find helpful when they don\'t understand material, are finding a tutor, '
-                + 'attending office hours, and finding a group of classmates to study with.',*/
+                //prompt: 'Not understanding content is a common issue, the courses are supposed to be challenging. '
+                //+ 'A few things that students find helpful when they don\'t understand material, are finding a tutor, '
+                //+ 'attending office hours, and finding a group of classmates to study with.',
                 type: SLOT_TYPES.OPEN_ENDED,
                 onResponse(input) {
                     if (this.context.timeMan == "time managment") {
@@ -251,6 +299,8 @@ const SECTIONS = {
         ],
         next: null
     },
+    */
+   /*
     tempTimeManagement: {
         name: 'tempTimeManagement',
         questions: [
@@ -272,7 +322,8 @@ const SECTIONS = {
         ],
         next: null
     },
-
+    */
+    /*
     tempSleep: {
         name: 'tempSleep',
         questions: [
@@ -288,7 +339,7 @@ const SECTIONS = {
         ],
         next: null
     },
-
+    */
 
     ending: {
         name: 'ending',
