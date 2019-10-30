@@ -307,20 +307,37 @@ const SECTIONS = {
                     return 'Since you haven\'t ' + this.userData.smokeOrVape + 'd in a while, '
                         + 'I\'ve noted that you have already quit on '
                         + this.userData.quitDate.toLocaleString('en-US', { month: 'long', day: 'numeric' })
-                        + '. I always will be here for you if you need to talk. Does this sound good?';
-                },
-                type: SLOT_TYPES.YES_NO,
-                onResponse(input) {
-                    if (input === 'yes') {
+                        + '. I will still be here to talk to you whenever you need me. Does this sound good?';
+                    },
+                type: SLOT_TYPES.OPEN_ENDED,
+                useWit: true,
+                onResponse(input, witResponse) {
+                    const errorResponse = {
+                        reprompt: true,
+                        response: 'Sorry, I misunderstood. Can I mark down that you quit on '
+                            + this.userData.quitDate.toLocaleString('en-US', { month: 'long', day: 'numeric' })
+                            + '?',
+                    };
+                    if (witResponse == null || witResponse.entities == null) {
+                        return errorResponse;
+                    }
+
+                    const {yes_or_no} = witResponse.entities;
+                    if (yes_or_no == null) {
+                        return errorResponse;
+                    }
+
+                    if (yes_or_no[0].value === 'yes') {
                         return {
                             response: 'Awesome! Thanks so much for talking to me today. '
                                 + 'Please talk to me again soon!'
                         };
+                    } else {
+                        return {
+                            response: 'Okay, let\'s set you up with a new quit date.',
+                            next: 'set_quit_date'
+                        };
                     }
-                    return {
-                        response: 'Okay, let\'s set you up with a new quit date.',
-                        next: 'set_quit_date'
-                    };
                 }
             }
         ]
@@ -532,9 +549,23 @@ const SECTIONS = {
             {
                 name: 'quit_successfully',
                 prompt: 'Do you want to set a new quit date?',
-                type: SLOT_TYPES.YES_NO,
-                onResponse(input) {
-                    if (input === 'yes') {
+                type: SLOT_TYPES.OPEN_ENDED,
+                useWit: true,
+                onResponse(input, witResponse) {
+                    const errorResponse = {
+                        reprompt: true,
+                        response: 'Sorry, I didn\'t catch that. Do you want to set a new quit date?',
+                    };
+                    if (witResponse == null || witResponse.entities == null) {
+                        return errorResponse;
+                    }
+
+                    const {yes_or_no} = witResponse.entities;
+                    if (yes_or_no == null) {
+                        return errorResponse;
+                    }
+
+                    if (yes_or_no[0].value === 'yes') {
                         return {
                             next: 'set_quit_date',
                         }
