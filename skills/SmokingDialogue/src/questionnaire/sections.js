@@ -15,6 +15,10 @@ function randomChoice(list) {
     return list[Math.floor(Math.random() * list.length)];
 }
 
+function asDate(dateStr) {
+    return typeof dateStr === 'string' ? new Date(dateStr) : dateStr;
+}
+
 /*
  * Sections:
  *  must contain a 'name', a list of 'questions' (at least 1), and can have a 'next'.
@@ -147,21 +151,12 @@ const SECTIONS = {
                     }
                     const dateStr = quit_date[0].value;
                     const date = new Date(dateStr);
-                    this.userData.dateLastSmoked = date;
 
                     if (date.getTime() > Date.now()) {
                         return errorResponse;
                     }
 
-                    const alreadyQuitDate = new Date();
-                    alreadyQuitDate.setDate(alreadyQuitDate.getDate() - DAYS_UNTIL_CONSIDERED_QUIT);
-
-                    if (date.getTime() <= alreadyQuitDate.getTime()) {
-                        return {
-                            response: 'Awesome! Sounds like you quit already!', 
-                            next: "already_quit"
-                        };
-                    }
+                    this.userData.dateLastSmoked = date;
                 }
             },{
                 name: 'duration_of_pod_or_pack',
@@ -281,15 +276,54 @@ const SECTIONS = {
                             }
                         }).filter(Boolean)).join('. ') + '. ';
                     }
-                    resp += 'I think now is a good time for you to set a quit date.';
 
+                    // Based on the user's dateLastSmoked, they may be considered to have already quit
+                    const alreadyQuitDate = new Date();
+                    alreadyQuitDate.setDate(alreadyQuitDate.getDate() - DAYS_UNTIL_CONSIDERED_QUIT);
+                    const dateLastSmoked = asDate(this.userData.dateLastSmoked);
+                    if (dateLastSmoked.getTime() <= alreadyQuitDate.getTime()) {
+                        this.userData.quitDate = dateLastSmoked;
+                        return {
+                            next: 'optional_set_quit_date'
+                        };
+                    }
+
+                    // Most of the time, the user will not have quit already and need to set a quit date
+                    resp += 'I think now is a good time for you to set a quit date.';
                     return {
                         response: resp,
+                        next: 'set_quit_date'
                     };
                 }
             },
         ],
-        next: 'set_quit_date'
+    },
+    optional_set_quit_date: {
+        name: 'optional_set_quit_date',
+        questions: [
+            {
+                name: 'happy_with_assigned_quit_date',
+                prompt() {
+                    return 'Since you haven\'t ' + this.userData.smokeOrVape + 'd in a while, '
+                        + 'I\'ve noted that you have already quit on '
+                        + this.userData.quitDate.toLocaleString('en-US', { month: 'long', day: 'numeric' })
+                        + '. I always will be here for you if you need to talk. Does this sound good?';
+                },
+                type: SLOT_TYPES.YES_NO,
+                onResponse(input) {
+                    if (input === 'yes') {
+                        return {
+                            response: 'Awesome! Thanks so much for talking to me today. '
+                                + 'Please talk to me again soon!'
+                        };
+                    }
+                    return {
+                        response: 'Okay, let\'s set you up with a new quit date.',
+                        next: 'set_quit_date'
+                    };
+                }
+            }
+        ]
     },
     set_quit_date: {
         name: 'set_quit_date',
