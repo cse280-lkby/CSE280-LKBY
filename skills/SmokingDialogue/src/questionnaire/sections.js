@@ -60,7 +60,7 @@ const SECTIONS = {
             }
             return 'Welcome back! ' + phrase;
         }
-        return 'Hi there, welcome to the smoking dialogue! '
+        return 'Hi there, I\'m here to help you with your smoking or vaping habit! '
             + 'Are you ready to get started?';
     },
 
@@ -293,7 +293,7 @@ const SECTIONS = {
             {
                 name: 'quit_date',
                 prompt() {
-                    return 'By which date would you like to be done with '
+                    return 'When do you think you would like to be done with '
                         + (this.userData.smokeOrVape === 'vape' ? 'vaping' : 'smoking')
                         + '?';
                 },
@@ -335,7 +335,8 @@ const SECTIONS = {
                     if (date.getTime() <= Date.now()) {
                         return {
                             reprompt: true,
-                            response: 'How about a date a little further in the future?',
+                            response: 'I think you should give yourself some time to ease off. '
+                                + 'How about a date a little further in the future?',
                         }
                     }
 
@@ -575,7 +576,7 @@ const SECTIONS = {
                 onResponse(input, witResponse) {
                     const errorResponse = {
                         reprompt: true,
-                        response: 'Sorry, I didn\'t catch that. How are you feeling?',
+                        response: 'Sorry, I didn\'t catch that. How are you feeling about your upcoming quit date?',
                     };
                     if (witResponse == null || witResponse.entities == null) {
                         return errorResponse;
@@ -600,7 +601,7 @@ const SECTIONS = {
                     }
                     if (feelings.includes('positive')) {
                         prefixes.push(randomChoice([
-                            'It\'s great to hear that you are thinking positive!',
+                            'It\'s great to hear that you are thinking positively!',
                             'I\'m so glad to hear that you are optimistic!'
                         ]));
                     }
