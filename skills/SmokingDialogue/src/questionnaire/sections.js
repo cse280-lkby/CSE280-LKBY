@@ -112,13 +112,17 @@ const SECTIONS = {
                         return errorResponse;
                     }
 
-                    //Initializes default values for the context smoke_or_vape and pod_or_pack
-                    this.userData.smokeOrVape = 'smoke';
                     const {smoke_or_vape} = witResponse.entities;
-                    if (smoke_or_vape != null) {
-                        const response = smoke_or_vape[0].value;
-                        this.userData.smokeOrVape = response;
+                    if (smoke_or_vape == null) {
+                        return errorResponse;
                     }
+                    const value = smoke_or_vape[0].value;
+                    if (value !== 'smoke' && value !== 'vape') {
+                        console.error('Unknown value for smoke_or_vape: ' + value);
+                        return errorResponse;
+                    }
+
+                    this.userData.smokeOrVape = value;
                 }
             },{
                 name: 'date_last_smoked',
