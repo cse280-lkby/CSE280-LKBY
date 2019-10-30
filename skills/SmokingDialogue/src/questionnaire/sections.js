@@ -15,6 +15,10 @@ function randomChoice(list) {
     return list[Math.floor(Math.random() * list.length)];
 }
 
+function asDate(dateStr) {
+    return typeof dateStr === 'string' ? new Date(dateStr) : dateStr;
+}
+
 /*
  * Sections:
  *  must contain a 'name', a list of 'questions' (at least 1), and can have a 'next'.
@@ -60,7 +64,7 @@ const SECTIONS = {
             }
             return 'Welcome back! ' + phrase;
         }
-        return 'Hi there, welcome to the smoking dialogue! '
+        return 'Hi there, I\'m here to help you with your smoking or vaping habit! '
             + 'Are you ready to get started?';
     },
 
@@ -112,13 +116,17 @@ const SECTIONS = {
                         return errorResponse;
                     }
 
-                    //Initializes default values for the context smoke_or_vape and pod_or_pack
-                    this.userData.smokeOrVape = 'smoke';
                     const {smoke_or_vape} = witResponse.entities;
-                    if (smoke_or_vape != null) {
-                        const response = smoke_or_vape[0].value;
-                        this.userData.smokeOrVape = response;
+                    if (smoke_or_vape == null) {
+                        return errorResponse;
                     }
+                    const value = smoke_or_vape[0].value;
+                    if (value !== 'smoke' && value !== 'vape') {
+                        console.error('Unknown value for smoke_or_vape: ' + value);
+                        return errorResponse;
+                    }
+
+                    this.userData.smokeOrVape = value;
                 }
             },{
                 name: 'date_last_smoked',
@@ -143,21 +151,12 @@ const SECTIONS = {
                     }
                     const dateStr = quit_date[0].value;
                     const date = new Date(dateStr);
-                    this.userData.dateLastSmoked = date;
 
                     if (date.getTime() > Date.now()) {
                         return errorResponse;
                     }
 
-                    const alreadyQuitDate = new Date();
-                    alreadyQuitDate.setDate(alreadyQuitDate.getDate() - DAYS_UNTIL_CONSIDERED_QUIT);
-
-                    if (date.getTime() <= alreadyQuitDate.getTime()) {
-                        return {
-                            response: 'Awesome! Sounds like you quit already!', 
-                            next: "already_quit"
-                        };
-                    }
+                    this.userData.dateLastSmoked = date;
                 }
             },{
                 name: 'duration_of_pod_or_pack',
@@ -277,15 +276,71 @@ const SECTIONS = {
                             }
                         }).filter(Boolean)).join('. ') + '. ';
                     }
-                    resp += 'I think now is a good time for you to set a quit date.';
 
+                    // Based on the user's dateLastSmoked, they may be considered to have already quit
+                    const alreadyQuitDate = new Date();
+                    alreadyQuitDate.setDate(alreadyQuitDate.getDate() - DAYS_UNTIL_CONSIDERED_QUIT);
+                    const dateLastSmoked = asDate(this.userData.dateLastSmoked);
+                    if (dateLastSmoked.getTime() <= alreadyQuitDate.getTime()) {
+                        this.userData.quitDate = dateLastSmoked;
+                        return {
+                            next: 'optional_set_quit_date'
+                        };
+                    }
+
+                    // Most of the time, the user will not have quit already and need to set a quit date
+                    resp += 'I think now is a good time for you to set a quit date.';
                     return {
                         response: resp,
+                        next: 'set_quit_date'
                     };
                 }
             },
         ],
-        next: 'set_quit_date'
+    },
+    optional_set_quit_date: {
+        name: 'optional_set_quit_date',
+        questions: [
+            {
+                name: 'happy_with_assigned_quit_date',
+                prompt() {
+                    return 'Since you haven\'t ' + this.userData.smokeOrVape + 'd in a while, '
+                        + 'I\'ve noted that you have already quit on '
+                        + this.userData.quitDate.toLocaleString('en-US', { month: 'long', day: 'numeric' })
+                        + '. I will still be here to talk to you whenever you need me. Does this sound good?';
+                    },
+                type: SLOT_TYPES.OPEN_ENDED,
+                useWit: true,
+                onResponse(input, witResponse) {
+                    const errorResponse = {
+                        reprompt: true,
+                        response: 'Sorry, I misunderstood. Can I mark down that you quit on '
+                            + this.userData.quitDate.toLocaleString('en-US', { month: 'long', day: 'numeric' })
+                            + '?',
+                    };
+                    if (witResponse == null || witResponse.entities == null) {
+                        return errorResponse;
+                    }
+
+                    const {yes_or_no} = witResponse.entities;
+                    if (yes_or_no == null) {
+                        return errorResponse;
+                    }
+
+                    if (yes_or_no[0].value === 'yes') {
+                        return {
+                            response: 'Awesome! Thanks so much for talking to me today. '
+                                + 'Please talk to me again soon!'
+                        };
+                    } else {
+                        return {
+                            response: 'Okay, let\'s set you up with a new quit date.',
+                            next: 'set_quit_date'
+                        };
+                    }
+                }
+            }
+        ]
     },
     set_quit_date: {
         name: 'set_quit_date',
@@ -293,7 +348,7 @@ const SECTIONS = {
             {
                 name: 'quit_date',
                 prompt() {
-                    return 'By which date would you like to be done with '
+                    return 'When do you think you would like to be done with '
                         + (this.userData.smokeOrVape === 'vape' ? 'vaping' : 'smoking')
                         + '?';
                 },
@@ -335,7 +390,8 @@ const SECTIONS = {
                     if (date.getTime() <= Date.now()) {
                         return {
                             reprompt: true,
-                            response: 'How about a date a little further in the future?',
+                            response: 'I think you should give yourself some time to ease off. '
+                                + 'How about a date a little further in the future?',
                         }
                     }
 
@@ -493,9 +549,23 @@ const SECTIONS = {
             {
                 name: 'quit_successfully',
                 prompt: 'Do you want to set a new quit date?',
-                type: SLOT_TYPES.YES_NO,
-                onResponse(input) {
-                    if (input === 'yes') {
+                type: SLOT_TYPES.OPEN_ENDED,
+                useWit: true,
+                onResponse(input, witResponse) {
+                    const errorResponse = {
+                        reprompt: true,
+                        response: 'Sorry, I didn\'t catch that. Do you want to set a new quit date?',
+                    };
+                    if (witResponse == null || witResponse.entities == null) {
+                        return errorResponse;
+                    }
+
+                    const {yes_or_no} = witResponse.entities;
+                    if (yes_or_no == null) {
+                        return errorResponse;
+                    }
+
+                    if (yes_or_no[0].value === 'yes') {
                         return {
                             next: 'set_quit_date',
                         }
@@ -575,7 +645,7 @@ const SECTIONS = {
                 onResponse(input, witResponse) {
                     const errorResponse = {
                         reprompt: true,
-                        response: 'Sorry, I didn\'t catch that. How are you feeling?',
+                        response: 'Sorry, I didn\'t catch that. How are you feeling about your upcoming quit date?',
                     };
                     if (witResponse == null || witResponse.entities == null) {
                         return errorResponse;
@@ -600,7 +670,7 @@ const SECTIONS = {
                     }
                     if (feelings.includes('positive')) {
                         prefixes.push(randomChoice([
-                            'It\'s great to hear that you are thinking positive!',
+                            'It\'s great to hear that you are thinking positively!',
                             'I\'m so glad to hear that you are optimistic!'
                         ]));
                     }
