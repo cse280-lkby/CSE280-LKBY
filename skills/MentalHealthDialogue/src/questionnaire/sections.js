@@ -133,7 +133,7 @@ const SECTIONS = {
                     console.log('context is ', this.context.currentMood);
                     if (witResponse != null) {
                         console.log('Got response from Wit API!', JSON.stringify(witResponse));
-                        const errorResponse = { response: 'Sorry, I didn\'t understand that.', next: 'check_in' };
+                        const errorResponse = { response: 'Sorry, I didn\'t understand that.', next: 'tempNegative' };
                         const {issues} = witResponse.entities;
                         if (issues == null) {
                             return errorResponse;
@@ -274,19 +274,113 @@ const SECTIONS = {
                 name: 'gratitude_exercise_part_2',
                 prompt: 'Perfect! The purpose of this exercise is to remind you of the positives in your life, and take your mind away from all of the stress, and negatives that may be consuming you.'
                 + '<break time="1s"/> For example, whenever I think of how grateful I am to be a healthy, speaking Alexa, I instantly feel better. Let\'s give it a try with you. <break time="1s"/>'
-                + 'What are two things you are grateful for today?',
+                + 'What is one thing you are grateful for today?',
                 type: SLOT_TYPES.OPEN_ENDED,
-                onResponse(input) {
+                useWit: true,
+                onResponse(input, witResponse) {
+                    if (witResponse != null) {
+                        console.log('Got response from Wit API!', JSON.stringify(witResponse));
+                        const errorResponse = { response: 'Sorry, I didn\'t understand that.', next: 'gratitude_exercise_part_2' };
+                        const {gratitude} = witResponse.entities;
+                        if (gratitude == null) {
+                            return errorResponse;
+                        }
+
+                        // declare a string that we will append the responses to
+                        let resp = '';
+
+                        for(var i = 0; i < gratitude.length; i++) {
+                            const gratitudeStr = gratitude[i].value;
+                            if (gratitudeStr == "friend") {
+                                // inside of each of the possible matches, add to the returned string
+                                resp += 'It is so wonderful that there are people in this world who love you and support you all the time, isn\'t it? <break time="1s"/>';
+                                this.context.friend = "friend";
+                            }
+                            else if (gratitudeStr == "life_style") {
+                                resp += 'It is so wonderful that you have time to do the things you enjoy. Simple activities like what you did today can greatly improve life quality! <break time="1s"/>';
+                                this.context.life_style = "life style";
+                            }
+                            else if (gratitudeStr == "no") {
+                                resp += 'I\'m sure there are great things happened to you but you just haven\'t noticed yet. Try to pay attention to even the smallest or simplest event, such as chat with a friend before class and have a good meal in a resturant.  <break time="1s"/>';
+                                this.context.no = "no";
+                            }
+                            else {
+                            }
+                        }
+                        
+                        // return the response, jump to another question
+                        return {response: resp};
+                    }
+                }
+                /*onResponse(input) {
                         return {
                             response: 'Don\'t you feel so much better knowing you have those 2 great things in your life? <break time="1s"/>'
                             + 'The next time you feel down <break time=".25s"/> I challenge you to think of these 2 positives, or even new ones, '
                             + 'to make you feel just a little bit better. <break time="1s"/>',
                         };
-                } 
+                } */
+            },
+        ],
+        next: 'gratitude_exercise_part_2_secondQuestion'
+    },
+
+
+    gratitude_exercise_part_2_secondQuestion: {
+        name: 'gratitude_exercise_part_2_secondQuestion',
+        questions: [
+            {
+                name: 'gratitude_exercise_part_2_secondQuestion',
+                prompt: 'Now, one more time. Can you think of another thing you are grateful for today? What is it? ',
+                type: SLOT_TYPES.OPEN_ENDED,
+                useWit: true,
+                onResponse(input, witResponse) {
+                    if (witResponse != null) {
+                        console.log('Got response from Wit API!', JSON.stringify(witResponse));
+                        const errorResponse = { response: 'Sorry, I didn\'t understand that.', next: 'gratitude_exercise_part_2_secondQuestion' };
+                        const {gratitude} = witResponse.entities;
+                        if (gratitude == null) {
+                            return errorResponse;
+                        }
+
+                        // declare a string that we will append the responses to
+                        let resp = '';
+
+                        for(var i = 0; i < gratitude.length; i++) {
+                            const gratitudeStr = gratitude[i].value;
+                            if (gratitudeStr == "friend") {
+                                // inside of each of the possible matches, add to the returned string
+                                resp += 'It is so wonderful that there are people in this world who love you and support you all the time, isn\'t it? <break time="1s"/>';
+                                resp += 'Don\'t you feel so much better knowing you have those great things in your life? <break time="1s"/>'
+                                + 'The next time you feel down <break time=".25s"/> I challenge you to think of these positives, or even new ones, '
+                                + 'to make you feel just a little bit better. <break time="1s"/>'
+                                this.context.friend = "friend";
+                            }
+                            else if (gratitudeStr == "life_style") {
+                                resp += 'It is so wonderful that you have time to do the things you enjoy. Simple activities like what you did today can greatly improve life quality! <break time="1s"/>';
+                                resp += 'Don\'t you feel so much better knowing you have those great things in your life? <break time="1s"/>'
+                                + 'The next time you feel down <break time=".25s"/> I challenge you to think of these positives, or even new ones, '
+                                + 'to make you feel just a little bit better. <break time="1s"/>'
+                                this.context.life_style = "life style";
+                            }
+                            else if (gratitudeStr == "no") {
+                                resp += 'I\'m sure there are many more things happened to you but you just haven\'t noticed yet. Try to pay attention to even the smallest or simplest event, such as get in touch with someone you haven\'t talked for a while and watch an interesting Netflix show on your bed.  <break time="1s"/>';
+                                resp += 'Let\'s try this gratitude exercise on another day and see if you can name at least two things! <break time="1s"/>';
+                                this.context.no = "no";
+                            }
+                            else {
+                            }
+                        }
+    
+                        // return the response, jump to another question
+                        return {response: resp};
+                    }
+                }
             },
         ],
         next: 'ending'
     },
+
+
     /*
     tempExam: {
         name: 'tempExam',
