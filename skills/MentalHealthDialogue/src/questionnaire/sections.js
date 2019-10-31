@@ -146,23 +146,23 @@ const SECTIONS = {
                             const issueStr = issues[i].value;
                             if (issueStr == "exam") {
                                 // inside of each of the possible matches, add to the returned string
-                                resp += 'Ah, Exams. Even though exams seem so important, your entire future doesn\'t depend on them. Don\'t give a test the power to define you!';
+                                resp += 'Ah, Exams. Even though exams seem so important, your entire future doesn\'t depend on them. Don\'t give a test the power to define you! <break time="1s"/>';
 
                                 this.context.exams = "exams";
                             }
                             else if (issueStr == "course_material") {
-                                resp += 'I never heard anyone say college is easy. Try to attend office hours and finding a group of classmates to study with.';
+                                resp += 'I never heard anyone say college is easy. Try to attend office hours and find a group of classmates to study with. <break time="1s"/>';
 
                                 this.context.courseMaterials = "course materials";
                             }
                             else if (issueStr == "time_management") {
                                 resp += 'Don\'t you wish there was more time in a day? That probably won\'t happen. '
-                                + ' Instead of putting things off until later and feeling guilty about it, try to start your work now. ';
+                                + ' Instead of putting things off until later and feeling guilty about it, try to start your work now. <break time="1s"/> ';
 
                                 this.context.timeMan = "time managment";
                             }
                             else if (issueStr == "sleep") {
-                                resp += 'I know that sleep is super important to me too. Before bed, try to relax and imagine you are in your happy place, whether that\'s a beach, a hotel, a spa, or even F M L.';
+                                resp += 'I know that sleep is super important to me too. Before bed, try to relax and imagine you are in your happy place, whether that\'s a beach, a hotel, a spa, or even F M L. <break time="1s"/>';
 
                                 this.context.sleep = "sleeping";
                             }
@@ -203,7 +203,7 @@ const SECTIONS = {
         questions: [
             {
                 name: 'contact',
-                prompt: 'I am sorry you feel this way, would you like to contact the counseling center? The number is 6 1 0 7 5 8 3 8 8 0.',
+                prompt: 'I\'m sorry you feel this way, would you like to contact the counseling center? The number is 6 1 0 7 5 8 3 8 8 0.',
                 type: SLOT_TYPES.OPEN_ENDED,
                 onResponse(input) {
                     return 'check_in'      ;              
@@ -217,29 +217,72 @@ const SECTIONS = {
         questions: [
             {
                 name: 'breathing_exercise',
-                prompt: 'Something I have found to be helpful when dealing with stress focussing on my breathing. Would you like to do a simple breathing exercise?',
+                prompt: 'Something I have found to be helpful when dealing with stress is focussing on my breathing. Would you like to do a simple breathing exercise?',
                 type: SLOT_TYPES.YES_NO,
                 onResponse(input) {
                     if(input==='yes'){
                         return {
-                            response: 'Awesome! The purpose of this breathing exercise is to focus on your body and calm your mind with'
-                        + ' the steadiness of your relaxed breathing. I will count to 4 as you breathe in and then I will count to 7 as you'
-                        + ' slowly breathe out. Here we go   .'
-                        + ' Breathe in 2  3  4.'
-                        + ' And now slowly out  2 3 4 5 6 7.'
-                        + ' Now let\'s do that one more time, this time really feel your lungs fill with the air.'
-                        + ' Breathe in 2  3  4.'
-                        + ' And now slowly out  2 3 4 5 6 7.',
+                            response: 'Awesome! The purpose of this exercise is to focus on your body and calm your mind with'
+                        + ' the steadiness of your relaxed breathing. I will count to 4 as you breathe in and then I will count to 6 as you'
+                        + ' slowly breathe out. Here we go  <break time="0.5s"/> .'
+                        + ' Breathe in <break time="0.5s"/> 2 <break time="0.5s"/> 3 <break time="0.5s"/> 4.'
+                        + ' And now out <break time="0.5s"/> 2 <break time="0.5s"/> 3 <break time="0.5s"/> 4 <break time="0.5s"/> 5 <break time="0.5s"/> 6 .'
+                        + ' Now let\'s do that one more time, this time really feel your lungs fill with the air. <break time="0.5s"/>'
+                        + ' Breathe in <break time="0.5s"/> 2 <break time="0.5s"/> 3 <break time="0.5s"/> 4.'
+                        + ' And now slowly out <break time="0.5s"/> 2 <break time="0.5s"/> 3 <break time="0.5s"/> 4 <break time="0.5s"/> 5 <break time="0.5s"/> 6 .'
+                        + '<break time="1s"/> I hope this helped you find some calm among the stress you\'re experiencing. I know I already feel more relaxed from it. <break time="1s"/>',
                         };
                     }
+
                     else {
                         return {
-                            response: 'That\'s fine, we can try that out a different day!',
+                            response: 'That\'s just fine, we can try that out a different day! <break time="1s"/>',
                         };
                     }
-                }
+                } 
+            },
+        ],
+        next: 'gratitude_exercise'
+    },
+    gratitude_exercise: {
+        name: 'gratitude_exercise',
+        questions: [
+            {
+                name: 'gratitude_exercise',
+                prompt: 'Another activity I find that helps me deal with stress is thinking about the people or things I am grateful for. Would you like to try the gratitude exercise?',
+                type: SLOT_TYPES.YES_NO,
+                onResponse(input) {
+                    if(input==='yes'){
+                        // if they want to try the activity, go to the actual activity
+                        return 'gratitude_exercise_part_2';
+                    }
 
-                
+                    else {
+                        return {
+                            response: 'That\'s alright, we\'ll give that a try another day! <break time="1s"/>',
+                        };
+                    }
+                } 
+            },
+        ],
+        next: 'ending'
+    },
+    gratitude_exercise_part_2: {
+        name: 'gratitude_exercise_part_2',
+        questions: [
+            {
+                name: 'gratitude_exercise_part_2',
+                prompt: 'Perfect! The purpose of this exercise is to remind you of the positives in your life, and take your mind away from all of the stress, and negatives that may be consuming you.'
+                + '<break time="1s"/> For example, whenever I think of how grateful I am to be a healthy, speaking Alexa, I instantly feel better. Let\'s give it a try with you. <break time="1s"/>'
+                + 'What are two things you are grateful for today?',
+                type: SLOT_TYPES.OPEN_ENDED,
+                onResponse(input) {
+                        return {
+                            response: 'Don\'t you feel so much better knowing you have those 2 great things in your life? <break time="1s"/>'
+                            + 'The next time you feel down <break time=".25s"/> I challenge you to think of these 2 positives, or even new ones, '
+                            + 'to make you feel just a little bit better. <break time="1s"/>',
+                        };
+                } 
             },
         ],
         next: 'ending'
