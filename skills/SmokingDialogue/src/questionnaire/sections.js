@@ -1,6 +1,7 @@
 const SLOT_TYPES = require('./slot-types');
 
 const DAYS_UNTIL_CONSIDERED_QUIT = 4;
+const HALF_SEC_BREAK = breakForSec(0.5);
 
 function dedupe(list) {
     return [...(new Set(list))];
@@ -18,6 +19,11 @@ function randomChoice(list) {
 function asDate(dateStr) {
     return typeof dateStr === 'string' ? new Date(dateStr) : dateStr;
 }
+
+function breakForSec(sec) {
+    return ` <break time="${sec.toFixed(1)}s"/> `;
+}
+
 
 /*
  * Sections:
@@ -215,7 +221,7 @@ const SECTIONS = {
                         }
                     }
                     
-                    let resp = 'You are not alone. ';
+                    let resp = 'You are not alone.' + HALF_SEC_BREAK;
                     const {reasonsForSmoking, reasonsForQuitting} = this.userData;
                     if(reasonsForSmoking) {
                         // Build a response addressing all reasons_for_smoking
@@ -249,7 +255,7 @@ const SECTIONS = {
                                     console.error('Unhandled reason for smoking! Reason is: ', reason);
                                     return '';
                             }
-                        }).filter(Boolean)).join('. ') + '. ';
+                        }).filter(Boolean)).join(HALF_SEC_BREAK) + HALF_SEC_BREAK;
                     }
 
                     if(reasonsForQuitting != null) {
@@ -274,7 +280,7 @@ const SECTIONS = {
                                     console.error('Unhandled reason for smoking! Reason is: ', reason);
                                     return '';
                             }
-                        }).filter(Boolean)).join('. ') + '. ';
+                        }).filter(Boolean)).join(HALF_SEC_BREAK) + HALF_SEC_BREAK;
                     }
 
                     // Based on the user's dateLastSmoked, they may be considered to have already quit
@@ -289,7 +295,8 @@ const SECTIONS = {
                     }
 
                     // Most of the time, the user will not have quit already and need to set a quit date
-                    resp += 'I think now is a good time for you to set a quit date.';
+                    resp += 'I think now is a good time for you to set a quit date.'
+                        + HALF_SEC_BREAK;
                     return {
                         response: resp,
                         next: 'set_quit_date'
@@ -307,15 +314,16 @@ const SECTIONS = {
                     return 'Since you haven\'t ' + this.userData.smokeOrVape + 'd in a while, '
                         + 'I\'ve noted that you have already quit on '
                         + this.userData.quitDate.toLocaleString('en-US', { month: 'long', day: 'numeric' })
-                        + '. I will still be here to talk to you whenever you need me. Does this sound good?';
+                        + HALF_SEC_BREAK
+                        + '. I will still be here to talk whenever you need me. Does this sound good?';
                     },
                 type: SLOT_TYPES.OPEN_ENDED,
                 useWit: true,
                 onResponse(input, witResponse) {
                     const errorResponse = {
                         reprompt: true,
-                        response: 'Sorry, I misunderstood. Can I mark down that you quit on '
-                            + this.userData.quitDate.toLocaleString('en-US', { month: 'long', day: 'numeric' })
+                        response: 'Sorry, I misunderstood. Should I mark down that you have already quit on '
+                            + this.userData.quitDate.toLocaleString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
                             + '?',
                     };
                     if (witResponse == null || witResponse.entities == null) {
@@ -330,11 +338,13 @@ const SECTIONS = {
                     if (yes_or_no[0].value === 'yes') {
                         return {
                             response: 'Awesome! Thanks so much for talking to me today. '
+                                + HALF_SEC_BREAK
                                 + 'Please talk to me again soon!'
                         };
                     } else {
                         return {
-                            response: 'Okay, let\'s set you up with a new quit date.',
+                            response: 'Okay, let\'s set you up with a new quit date.'
+                                + HALF_SEC_BREAK,
                             next: 'set_quit_date'
                         };
                     }
@@ -370,9 +380,11 @@ const SECTIONS = {
                         return {
                             reprompt: true,
                             response: 'Setting a quit date is the first step on the journey to quitting. '
+                                + HALF_SEC_BREAK
                                 + 'The best quit date is one that will motivate you '
                                 + 'to stop soon but still give you enough time to ease off. '
                                 + 'It doesn\'t have to be set in stone and can be changed later. '
+                                + HALF_SEC_BREAK
                                 + 'When do you think you would like to quit?'
                         };
                     }
@@ -391,6 +403,7 @@ const SECTIONS = {
                         return {
                             reprompt: true,
                             response: 'I think you should give yourself some time to ease off. '
+                                + HALF_SEC_BREAK
                                 + 'How about a date a little further in the future?',
                         }
                     }
@@ -399,8 +412,9 @@ const SECTIONS = {
 
                     return {
                         response: 'Sounds great. I\'m looking forward to helping you quit by '
-                            + date.toLocaleString('en-US', { month: 'long', day: 'numeric' })
-                            + '! Let\'s talk again soon!',
+                            + date.toLocaleString('en-US', { month: 'long', day: 'numeric' }) + '!'
+                            + HALF_SEC_BREAK
+                            + 'Let\'s talk again soon!',
                     }
                 }
             }
@@ -435,7 +449,7 @@ const SECTIONS = {
                     if (emotion && emotion[0].value === 'positive') {
                         resp += randomChoice([
                             'That\'s the right attitude to have!'
-                        ]);
+                        ]) + HALF_SEC_BREAK;
                     }
                     else if ((emotion && emotion[0].value === 'negative')
                         || (emotion && emotion[0].value === 'nervous')) {
@@ -475,7 +489,7 @@ const SECTIONS = {
                                     console.error('Unhandled reason for smoking! Reason is: ', reason);
                                     return '';
                             }
-                        }).filter(Boolean)).join(' ') + ' ';
+                        }).filter(Boolean)).join(HALF_SEC_BREAK) + HALF_SEC_BREAK;
                     }
 
                     resp += randomChoice([
@@ -491,7 +505,7 @@ const SECTIONS = {
                             + 'jar. Put a paper inside that says, "I saved x dollars by not smoking today."',
                         'Drink plenty of water. Stay busy. Try meditation or yoga or crossword puzzles. You '
                             + 'can do this!'
-                    ]) + ' ';
+                    ]) + HALF_SEC_BREAK;
 
                     if (outcome == null || outcome[0].confidence < .85) {
                         // Response was not understood properly. Redirect
@@ -517,7 +531,6 @@ const SECTIONS = {
 
                         return {
                             response: prefix + " " + resp,
-                            // next: 'already_quit',
                         };
                     }
                     else {
@@ -527,10 +540,9 @@ const SECTIONS = {
                             'Don\'t feel bad. Smoking is an addiction so be brave to tackle it.',
                             'Don\'t be discouraged. Things happen and as long as you continue to '
                                 + 'try, you will succeed.',
-                            'Yay! I\'m so glad you are doing well.',
                             'I\'m proud of your effort. As long as you don\'t stop trying it\'s all good.'
                         ]);
-                        resp += "Lets get you set up with a new quit date.";
+                        resp += "Lets get you set up with a new quit date." + HALF_SEC_BREAK;
                         return {
                             response: prefix + " " + resp,
                             next: 'set_quit_date',
@@ -571,7 +583,7 @@ const SECTIONS = {
                         }
                     } else {
                         return {
-                            response: 'Sounds good. Good luck on your journey. I will always be here for you if you need '
+                            response: 'Okay. Good luck on your journey. I will always be here for you if you need '
                                 + 'to talk.',
                         }
                     }
@@ -674,7 +686,7 @@ const SECTIONS = {
                             'I\'m so glad to hear that you are optimistic!'
                         ]));
                     }
-                    const prefix = prefixes.join(" ");
+                    const prefix = prefixes.join(HALF_SEC_BREAK);
 
                     const suffix = randomChoice([
                         'I will be here for you all the time. You can also call '
@@ -691,7 +703,7 @@ const SECTIONS = {
                     ]);
 
                     return {
-                        response: prefix + ' ' + suffix,
+                        response: prefix + HALF_SEC_BREAK + suffix,
                         next: 'quitting_aids'
                     }
                 }
@@ -704,9 +716,15 @@ const SECTIONS = {
         questions: [
             {
                 name: 'has_method_to_try', //use wit.ai to parse out specific methods (or a no response) and act accordingly
-                prompt: 'I think we should talk about what method you want to use to quit. Some people like to use '
-                    + 'a quitting aid such as gum, patches or medication. Others prefer to quit cold turkey. Have you '
-                    + 'thought about what method you would like to use to quit? If so, what method will you try?',
+                prompt: 'I think we should talk about what method you want to use to quit. '
+                    + HALF_SEC_BREAK
+                    + 'Some people like to use a quitting aid such as gum, patches or medication. '
+                    + HALF_SEC_BREAK
+                    + 'Others prefer to quit cold turkey. '
+                    + HALF_SEC_BREAK
+                    + 'Have you thought about what method you would like to use to quit? '
+                    + HALF_SEC_BREAK
+                    + 'If so, what method will you try?',
                 type: SLOT_TYPES.OPEN_ENDED,
                 useWit: true,
                 onResponse(input, witResponse) {
