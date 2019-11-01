@@ -1,11 +1,10 @@
 import React from 'react';
-import './App.css';
 
 function Footer() {
   return (
-        <p>
+        <div className="Footer">
             Send message
-        </p>
+        </div>
     );
   }
   

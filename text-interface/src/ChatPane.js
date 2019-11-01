@@ -1,12 +1,13 @@
 import React from 'react';
-import './App.css';
 
-function Footer() {
+function ChatPane() {
   return (
-        <p>
-            Chat Pane
-        </p>
-    );
-  }
-  
-  export default Footer;
+    <div className="ChatPane">
+      {
+        Array(100).fill(<p>Chat Message</p>)
+      }
+    </div>
+  );
+}
+
+export default ChatPane;
