@@ -66,7 +66,7 @@ const SECTIONS = {
                     if(input==='yes'){
                         return {
                             response: 'I\'m glad that you want to learn more. Essentially every time you want to talk to me, I\'ll ask you how you are feeling and try to make you feel better. '
-                            + 'For example, if you said you are feeling stressed, I could help you put things into perspective and figure out what is causing you feel that way.'
+                            + 'For example, if you said you are feeling stressed, I could help you put things into perspective and figure out what is causing you feel that way. '
                             + 'So let\'s give it a try, shall we?',
                         };
                     }
@@ -117,7 +117,7 @@ const SECTIONS = {
                 }
             },
         ],
-        next: 'understanding_content'
+        next: ''
     },
     tempNegative: {
         name: 'tempNegative',
@@ -133,43 +133,56 @@ const SECTIONS = {
                     console.log('context is ', this.context.currentMood);
                     if (witResponse != null) {
                         console.log('Got response from Wit API!', JSON.stringify(witResponse));
-                        const errorResponse = { response: 'Sorry, I didn\'t understand that.', next: 'check_in' };
+                        const errorResponse = { response: 'Sorry, I didn\'t understand that.', next: 'tempNegative' };
                         const {issues} = witResponse.entities;
                         if (issues == null) {
                             return errorResponse;
                         }
 
+                        // declare a string that we will append the responses to
+                        let resp = '';
+
                         for(var i = 0; i < issues.length; i++) {
                             const issueStr = issues[i].value;
                             if (issueStr == "exam") {
+                                // inside of each of the possible matches, add to the returned string
+                                resp += 'Ah, Exams. Even though exams seem so important, your entire future doesn\'t depend on them. Don\'t give a test the power to define you! <break time="1s"/>';
+
                                 this.context.exams = "exams";
-                                //console.log('ONE context.exams is ' + this.context.exams);
                             }
                             else if (issueStr == "course_material") {
+                                resp += 'I never heard anyone say college is easy. Try to attend office hours and find a group of classmates to study with. <break time="1s"/>';
+
                                 this.context.courseMaterials = "course materials";
-                                //console.log('TWOO context.materials is ' + this.context.courseMaterials);
                             }
                             else if (issueStr == "time_management") {
+                                resp += 'Don\'t you wish there was more time in a day? That probably won\'t happen. '
+                                + ' Instead of putting things off until later and feeling guilty about it, try to start your work now. <break time="1s"/> ';
+
                                 this.context.timeMan = "time managment";
                             }
                             else if (issueStr == "sleep") {
+                                resp += 'I know that sleep is super important to me too. Before bed, try to relax and imagine you are in your happy place, whether that\'s a beach, a hotel, a spa, or even F M L. <break time="1s"/>';
+
                                 this.context.sleep = "sleeping";
                             }
                             else {
                             }
-                            //console.log('issueStr is ' + issueStr);
                         }
+                        // return the response, jump to another question
+                        return {response: resp};
 
-                
+                /*
                         if(this.context.exams != null) {return 'tempExam';}
                         if(this.context.courseMaterials != null) {return 'tempCourseMaterials';}
                         if(this.context.timeMan != null) {return 'tempTimeManagement';}
                         if(this.context.sleep != null) {return 'tempSleep';}
+                */
                     }
                 }
             },
         ],
-        next: null
+        next: 'breathing_exercise'
     },
     tempPositive: {
         name: 'tempPositive',
@@ -190,7 +203,7 @@ const SECTIONS = {
         questions: [
             {
                 name: 'contact',
-                prompt: 'I am sorry you feel this way, would you like to contact the counseling center? The number is 6 1 0 7 5 8 3 8 8 0.',
+                prompt: 'I\'m sorry you feel this way, would you like to contact the counseling center? The number is 6 1 0 7 5 8 3 8 8 0.',
                 type: SLOT_TYPES.OPEN_ENDED,
                 onResponse(input) {
                     return 'check_in'      ;              
@@ -199,6 +212,176 @@ const SECTIONS = {
         ],
         next: null
     },
+    breathing_exercise: {
+        name: 'breathing_exercise',
+        questions: [
+            {
+                name: 'breathing_exercise',
+                prompt: 'Something I have found to be helpful when dealing with stress is focussing on my breathing. Would you like to do a simple breathing exercise?',
+                type: SLOT_TYPES.YES_NO,
+                onResponse(input) {
+                    if(input==='yes'){
+                        return {
+                            response: 'Awesome! The purpose of this exercise is to focus on your body and calm your mind with'
+                        + ' the steadiness of your relaxed breathing. I will count to 4 as you breathe in and then I will count to 6 as you'
+                        + ' slowly breathe out. Here we go  <break time="0.5s"/> .'
+                        + ' Breathe in <break time="0.5s"/> 2 <break time="0.5s"/> 3 <break time="0.5s"/> 4.'
+                        + ' And now out <break time="0.5s"/> 2 <break time="0.5s"/> 3 <break time="0.5s"/> 4 <break time="0.5s"/> 5 <break time="0.5s"/> 6 .'
+                        + ' Now let\'s do that one more time, this time really feel your lungs fill with the air. <break time="0.5s"/>'
+                        + ' Breathe in <break time="0.5s"/> 2 <break time="0.5s"/> 3 <break time="0.5s"/> 4.'
+                        + ' And now slowly out <break time="0.5s"/> 2 <break time="0.5s"/> 3 <break time="0.5s"/> 4 <break time="0.5s"/> 5 <break time="0.5s"/> 6 .'
+                        + '<break time="1s"/> I hope this helped you find some calm among the stress you\'re experiencing. I know I already feel more relaxed from it. <break time="1s"/>',
+                        };
+                    }
+
+                    else {
+                        return {
+                            response: 'That\'s just fine, we can try that out a different day! <break time="1s"/>',
+                        };
+                    }
+                } 
+            },
+        ],
+        next: 'gratitude_exercise'
+    },
+    gratitude_exercise: {
+        name: 'gratitude_exercise',
+        questions: [
+            {
+                name: 'gratitude_exercise',
+                prompt: 'Another activity I find that helps me deal with stress is thinking about the people or things I am grateful for. Would you like to try the gratitude exercise?',
+                type: SLOT_TYPES.YES_NO,
+                onResponse(input) {
+                    if(input==='yes'){
+                        // if they want to try the activity, go to the actual activity
+                        return 'gratitude_exercise_part_2';
+                    }
+
+                    else {
+                        return {
+                            response: 'That\'s alright, we\'ll give that a try another day! <break time="1s"/>',
+                        };
+                    }
+                } 
+            },
+        ],
+        next: 'ending'
+    },
+    gratitude_exercise_part_2: {
+        name: 'gratitude_exercise_part_2',
+        questions: [
+            {
+                name: 'gratitude_exercise_part_2',
+                prompt: 'Perfect! The purpose of this exercise is to remind you of the positives in your life, and take your mind away from all of the stress, and negatives that may be consuming you.'
+                + '<break time="1s"/> For example, whenever I think of how grateful I am to be a healthy, speaking Alexa, I instantly feel better. Let\'s give it a try with you. <break time="1s"/>'
+                + 'What is one thing you are grateful for today?',
+                type: SLOT_TYPES.OPEN_ENDED,
+                useWit: true,
+                onResponse(input, witResponse) {
+                    if (witResponse != null) {
+                        console.log('Got response from Wit API!', JSON.stringify(witResponse));
+                        const errorResponse = { response: 'Sorry, I didn\'t understand that.', next: 'gratitude_exercise_part_2' };
+                        const {gratitude} = witResponse.entities;
+                        if (gratitude == null) {
+                            return errorResponse;
+                        }
+
+                        // declare a string that we will append the responses to
+                        let resp = '';
+
+                        for(var i = 0; i < gratitude.length; i++) {
+                            const gratitudeStr = gratitude[i].value;
+                            if (gratitudeStr == "friend") {
+                                // inside of each of the possible matches, add to the returned string
+                                resp += 'It is so wonderful that there are people in this world who love you and support you all the time, isn\'t it? <break time="1s"/>';
+                                this.context.friend = "friend";
+                            }
+                            else if (gratitudeStr == "life_style") {
+                                resp += 'It is so wonderful that you have time to do the things you enjoy. Simple activities like what you did today can greatly improve life quality! <break time="1s"/>';
+                                this.context.life_style = "life style";
+                            }
+                            else if (gratitudeStr == "no") {
+                                resp += 'I\'m sure there are great things happened to you but you just haven\'t noticed yet. Try to pay attention to even the smallest or simplest event, such as chat with a friend before class and have a good meal in a resturant.  <break time="1s"/>';
+                                this.context.no = "no";
+                            }
+                            else {
+                            }
+                        }
+                        
+                        // return the response, jump to another question
+                        return {response: resp};
+                    }
+                }
+                /*onResponse(input) {
+                        return {
+                            response: 'Don\'t you feel so much better knowing you have those 2 great things in your life? <break time="1s"/>'
+                            + 'The next time you feel down <break time=".25s"/> I challenge you to think of these 2 positives, or even new ones, '
+                            + 'to make you feel just a little bit better. <break time="1s"/>',
+                        };
+                } */
+            },
+        ],
+        next: 'gratitude_exercise_part_2_secondQuestion'
+    },
+
+
+    gratitude_exercise_part_2_secondQuestion: {
+        name: 'gratitude_exercise_part_2_secondQuestion',
+        questions: [
+            {
+                name: 'gratitude_exercise_part_2_secondQuestion',
+                prompt: 'Now, one more time. Can you think of another thing you are grateful for today? What is it? ',
+                type: SLOT_TYPES.OPEN_ENDED,
+                useWit: true,
+                onResponse(input, witResponse) {
+                    if (witResponse != null) {
+                        console.log('Got response from Wit API!', JSON.stringify(witResponse));
+                        const errorResponse = { response: 'Sorry, I didn\'t understand that.', next: 'gratitude_exercise_part_2_secondQuestion' };
+                        const {gratitude} = witResponse.entities;
+                        if (gratitude == null) {
+                            return errorResponse;
+                        }
+
+                        // declare a string that we will append the responses to
+                        let resp = '';
+
+                        for(var i = 0; i < gratitude.length; i++) {
+                            const gratitudeStr = gratitude[i].value;
+                            if (gratitudeStr == "friend") {
+                                // inside of each of the possible matches, add to the returned string
+                                resp += 'It is so wonderful that there are people in this world who love you and support you all the time, isn\'t it? <break time="1s"/>';
+                                resp += 'Don\'t you feel so much better knowing you have those great things in your life? <break time="1s"/>'
+                                + 'The next time you feel down <break time=".25s"/> I challenge you to think of these positives, or even new ones, '
+                                + 'to make you feel just a little bit better. <break time="1s"/>'
+                                this.context.friend = "friend";
+                            }
+                            else if (gratitudeStr == "life_style") {
+                                resp += 'It is so wonderful that you have time to do the things you enjoy. Simple activities like what you did today can greatly improve life quality! <break time="1s"/>';
+                                resp += 'Don\'t you feel so much better knowing you have those great things in your life? <break time="1s"/>'
+                                + 'The next time you feel down <break time=".25s"/> I challenge you to think of these positives, or even new ones, '
+                                + 'to make you feel just a little bit better. <break time="1s"/>'
+                                this.context.life_style = "life style";
+                            }
+                            else if (gratitudeStr == "no") {
+                                resp += 'I\'m sure there are many more things happened to you but you just haven\'t noticed yet. Try to pay attention to even the smallest or simplest event, such as get in touch with someone you haven\'t talked for a while and watch an interesting Netflix show on your bed.  <break time="1s"/>';
+                                resp += 'Let\'s try this gratitude exercise on another day and see if you can name at least two things! <break time="1s"/>';
+                                this.context.no = "no";
+                            }
+                            else {
+                            }
+                        }
+    
+                        // return the response, jump to another question
+                        return {response: resp};
+                    }
+                }
+            },
+        ],
+        next: 'ending'
+    },
+
+
+    /*
     tempExam: {
         name: 'tempExam',
         questions: [
@@ -226,15 +409,17 @@ const SECTIONS = {
         ],
         next: null
     },
+    */
+   /*
     tempCourseMaterials: {
         name: 'tempCourseMaterials',
         questions: [
             {
                 name: 'course_materials',
                 prompt: 'I never heard anyone say college is easy. Try to attend office hours and finding a group of classmates to study with.',
-                /*prompt: 'Not understanding content is a common issue, the courses are supposed to be challenging. '
-                + 'A few things that students find helpful when they don\'t understand material, are finding a tutor, '
-                + 'attending office hours, and finding a group of classmates to study with.',*/
+                //prompt: 'Not understanding content is a common issue, the courses are supposed to be challenging. '
+                //+ 'A few things that students find helpful when they don\'t understand material, are finding a tutor, '
+                //+ 'attending office hours, and finding a group of classmates to study with.',
                 type: SLOT_TYPES.OPEN_ENDED,
                 onResponse(input) {
                     if (this.context.timeMan == "time managment") {
@@ -251,6 +436,8 @@ const SECTIONS = {
         ],
         next: null
     },
+    */
+   /*
     tempTimeManagement: {
         name: 'tempTimeManagement',
         questions: [
@@ -272,17 +459,14 @@ const SECTIONS = {
         ],
         next: null
     },
-
+    */
+    /*
     tempSleep: {
         name: 'tempSleep',
         questions: [
             {
                 name: 'sleep',
                 prompt: 'I know that sleep is super important to me too. Before bed, try to relax and imagine you are in your happy place, whether that\'s a beach, a hotel, a spa, or even F M L.',
-                /*prompt: 'Managing your time is one of the most difficult aspects of college. In order to keep track of '
-                + ' everything you need to accomplish try to create a planner for yourself and prioritize a list of things '
-                + ' that you need to do. Make the list as specific as possible.  Students often see that when you write everything'
-                + ' that must be done down on paper, the list seems more manageable than it was in your head.',*/
                 type: SLOT_TYPES.OPEN_ENDED,
                 onResponse(input) {
                     //return 'check_in' 
@@ -292,7 +476,7 @@ const SECTIONS = {
         ],
         next: null
     },
-
+    */
 
     ending: {
         name: 'ending',
@@ -301,14 +485,14 @@ const SECTIONS = {
                 name: 'first_top_trigger',
                 // TODO: Can this be customized to list *what the client likes about smoking*
                 prompt() { 
-                    var response = "It was a pleasure speaking with you today. ";
+                    var response = "";
                     if(this.context.exams != null) {response += this.context.exams + ' ';}
                     if(this.context.courseMaterials != null) {response += this.context.courseMaterials + ' ';}
                     if(this.context.timeMan != null) {response += this.context.timeMan + ' ';}
                     if(this.context.sleep != null) {response += this.context.sleep + ' ';}
-                    return 'Thanks for sharing your current struggles with '
+                    return 'It was a pleasure speaking with you today. Thanks for sharing your current struggles with '
                         + response
-                        + '. Next week we can check in on how those are going for you.';
+                        + '. Next time we can check in on how those are going for you.';
                 },
                 type: SLOT_TYPES.OPEN_ENDED
             }
