@@ -24,6 +24,7 @@ function Footer(props) {
       <div className="Bottom">
         <input
           className="TextBox"
+          disabled={props.isLoading}
           onChange={evt => setDraft(evt.target.value)}
           onKeyPress={evt => {
             if (evt.key === 'Enter') {
@@ -34,7 +35,7 @@ function Footer(props) {
           type="text"
           value={draft}
         />
-        <button className="SendButton" onClick={handleSend}>
+        <button className="SendButton" disabled={props.isLoading} onClick={handleSend}>
           Send
         </button>
       </div>
