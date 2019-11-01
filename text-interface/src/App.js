@@ -5,13 +5,37 @@ import Footer from './Footer';
 import './App.css';
 
 function App() {
+  const state = {
+    messages: [
+      {
+        outgoing: true,
+        text: 'Hello'
+      },
+      {
+        outgoing: false,
+        text: 'Hi, how are you?'
+      },
+      {
+        outgoing: true,
+        text: 'Good thanks. How are you?'
+      },
+      {
+        outgoing: false,
+        text: 'Great, thanks for asking!'
+      }
+    ],
+    suggestions: [
+      'Hello',
+      'How are you?',
+      'ABC'
+    ]
+  }
 
-  
   return (
     <div className="root">
       <Header />
-      <ChatPane />
-      <Footer />
+      <ChatPane messages={state.messages} />
+      <Footer suggestions={state.suggestions} />
     </div>
   );
 }

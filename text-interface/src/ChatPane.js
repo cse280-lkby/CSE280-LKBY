@@ -1,11 +1,11 @@
 import React from 'react';
 import ChatMessage from './ChatMessage';
 
-function ChatPane() {
+function ChatPane(props) {
   return (
     <div className="ChatPane">
       {
-        Array(30).fill('_').map(_ => <ChatMessage outgoing={Math.random() < 0.5} text="Hello" />)
+        props.messages.map(msg => <ChatMessage msg={msg} />)
       }
     </div>
   );
