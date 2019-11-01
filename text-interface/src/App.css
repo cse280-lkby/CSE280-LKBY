@@ -24,7 +24,33 @@ body {
 }
 
 .Footer {
-  border-top: 1px solid #243b49;
+  background: #243b49;
   flex: none;
+}
+
+.Footer .Top {
+  border-top: 1px solid #243b49;
   padding: 12px;
+}
+
+.Footer .Bottom {
+  border-top: 1px solid #243b49;
+  display: flex;
+  padding: 12px;
+}
+
+.Footer .Bottom .TextBox {
+  border: 1px solid #2D4554;
+  border-radius: 4px;
+  flex: auto;
+  padding: 8px;
+}
+
+.Footer .Bottom .SendButton {
+  background: #87BCDE;
+  border: 1px solid #2D4554;
+  border-radius: 4px;
+  color: black;
+  flex: none;
+  margin-left: 8px;
 }
