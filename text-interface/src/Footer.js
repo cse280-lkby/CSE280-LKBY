@@ -10,11 +10,14 @@ function Footer(props) {
     props.sendMessage(draft);
     setDraft('');
   };
+  const sendSuggestion = (text) => {
+    props.sendMessage(text);
+  };
 
   return (
     <div className="Footer">
       <div className="Top">
-        {props.suggestions.map(name => <Suggestion name={name} />)}
+        {props.suggestions.map(text => <Suggestion key={text} onClick={sendSuggestion} text={text} />)}
       </div>
       <div className="Bottom">
         <input

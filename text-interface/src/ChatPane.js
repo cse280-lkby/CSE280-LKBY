@@ -5,7 +5,7 @@ function ChatPane(props) {
   return (
     <div className="ChatPane">
       {
-        props.messages.map(msg => <ChatMessage msg={msg} />)
+        props.messages.map((msg, i) => <ChatMessage key={i} msg={msg} />)
       }
     </div>
   );
