@@ -777,13 +777,12 @@ const SECTIONS = {
 
                     const {yes_or_no} = witResponse.entities;
                     if (yes_or_no == null) {
-                        return {
-                            response: 'That\'s okay! Think about it and we\'ll come back to this another time.',
-                        }
+                        return errorResponse;
                     }
-
+                    
                     if (yes_or_no[0].value === 'no') {
                         return {
+                            response: 'That\'s okay! Think about it and we\'ll come back to this another time.',
                             next: 'planning'
                         };
                     }
