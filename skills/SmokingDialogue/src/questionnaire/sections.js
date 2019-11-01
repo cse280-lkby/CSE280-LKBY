@@ -433,7 +433,9 @@ const SECTIONS = {
 
                     if (emotion && emotion[0].value === 'positive') {
                         resp += randomChoice([
-                            'That\'s the right attitude to have!'
+                            'That\'s the right attitude to have!',
+                            'I\'m glad you\'re feeling optimistic!',
+                            'Having a positive viewpoint on your situation helps a lot!'
                         ]);
                     }
                     else if ((emotion && emotion[0].value === 'negative')
@@ -456,20 +458,42 @@ const SECTIONS = {
                                     return randomChoice([
                                         'Sorry to hear that you are feeling down.',
                                         'Sorry to hear that you are having such a hard time.',
-                                        'Don\'t think like that. We are all insecure at some point.',
-                                        'Cheer up. Believe that you can do it.'
+                                        'We are all insecure at some point. Life has it\'s ups and downs.',
+                                        'The path to happiness is not always quick or easy. Sometimes, you have to '
+                                            + 'slowly work towards it.'
                                     ]);
                                 case 'friends':
                                     return randomChoice([
-                                        'See if you can avoid those friends who smoke.',
+                                        'See if you can avoid those friends who ' + this.userData.smokeOrVape + '.',
                                         'Tell yourself "Not one puff ever. I will not accept any invitations '
-                                            + 'to smoke with my friends."'
+                                            + 'to ' + this.userData.smokeOrVape + ' with my friends."',
+                                        'If you\'re friends ' + this.userData.smokeOrVape + ', that doesn\'t mean '
+                                            + 'you have to. You can always say no to ' + (this.userData.smokeOrVape === 'vape' ? 'vaping' : 'smoking')
+                                            + '.'
                                     ]);
                                 case 'stress':
+                                    return randomChoice([
+                                        'Stressful situations may cause cravings, but you can overcome them.',
+                                        'Try to find other ways with dealing with your stress. Working out, '
+                                            + 'taking a walk, or hanging out with friends are some great examples.',
+                                        'Sometimes you have to accept that you won\'t get everything on your To-Do list done. '
+                                            + 'Managing your time to prioritize your most important tasks first can help with stress.'
+                                    ]);
                                 case 'school':
-                                    return 'Stressful situations may cause cravings, but you can overcome them.';
+                                    return randomChoice([
+                                        'Stressful situations may cause cravings, but you can overcome them.',
+                                        'School can be a difficult place to avoid cravings. However, keeping true '
+                                            + 'to your commitment of not ' + (this.userData.smokeOrVape === 'vape' ? 'vaping' : 'smoking')
+                                            + ' is very important.'
+                                    ]);
                                 case 'pleasure':
-                                    return '';
+                                    return randomChoice([
+                                        'While ' + (this.userData.smokeOrVape === 'vape' ? 'vaping' : 'smoking') + ' can feel nice in the '
+                                            + 'moment, it is important to remember all the negative consequences.',
+                                        'Remember, a moment of pleasure is not worth a lifetime of health problems.',
+                                        'Remember, a few moments of pleasure is not worth the hundreds of dollars you will '
+                                            + 'end up sinking into your habit.'
+                                    ]);
                                 default:
                                     console.error('Unhandled reason for smoking! Reason is: ', reason);
                                     return '';
@@ -516,7 +540,7 @@ const SECTIONS = {
 
                         return {
                             response: prefix + " " + resp,
-                            // next: 'already_quit',
+                            next: '',
                         };
                     }
                     else {
@@ -612,7 +636,7 @@ const SECTIONS = {
                 onResponse(input, witResponse) {
                     const errorResponse = {
                         reprompt: true,
-                        response: 'Sorry, I didn\'t understand that. What quitting aid would you like to use?',
+                        response: 'Sorry, I didn\'t understand that. What quitting aid worked best for you?',
                     };
                     if (witResponse == null || witResponse.entities == null) {
                         return errorResponse;
@@ -733,6 +757,7 @@ const SECTIONS = {
                         // TODO explain the different types of quitting aids
                         return {
                             response: 'That\'s okay! Think about it and we\'ll come back to this another time.',
+                            next: 'planning'
                         }
                     }
 
@@ -744,6 +769,7 @@ const SECTIONS = {
 
                     return {
                         response: this.userData.quittingAid + ' is a great idea!',
+                        next: 'planning'
                     }
                 }
             }
@@ -757,10 +783,22 @@ const SECTIONS = {
             {
                 name: 'top_triggers',
                 // TODO: Can this be customized to list *what the client likes about smoking*
-                prompt: 'Let\'s do some plannning for the situations where you usually smoke. What are some of your top triggers?',
+                prompt: 'Let\'s do some plannning for the situations where you usually smoke. What are your top triggers?',
                 type: SLOT_TYPES.OPEN_ENDED,
-                onResponse(input) {
-                    this.userData.topTriggers = input;
+                onResponse(input, witResponse) {
+                    const errorResponse = {
+                        reprompt: true,
+                        response: 'Sorry, I didn\'t understand that. What are your top triggers?',
+                    };
+                    if (witResponse == null || witResponse.entities == null) {
+                        return errorResponse;
+                    }
+                    const {reasons_for_smoking} = witResponse.entities;
+                    if (reasons_for_smoking == null) {
+                        return errorResponse;
+                    }
+                    this.userData.topTriggers = uniqueValues(reasons_for_smoking);
+
                     return {
                         response: 'It was great talking with you! I look forward to hearing from you soon!',
                         next: ''
