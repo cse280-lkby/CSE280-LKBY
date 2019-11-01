@@ -32,6 +32,7 @@ body {
   max-width: 200px;
   margin-bottom: 12px;
   padding: 12px;
+  word-break: break-all;
 }
 
 .ChatPane .ChatMessage.Incoming {

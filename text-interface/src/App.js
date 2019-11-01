@@ -5,7 +5,7 @@ import Footer from './Footer';
 import './App.css';
 
 function App() {
-  const state = {
+  const [state, setState] = React.useState({
     messages: [
       {
         outgoing: true,
@@ -29,13 +29,26 @@ function App() {
       'How are you?',
       'ABC'
     ]
-  }
+  });
+
+  const sendMessage = (text) => {
+    setState(oldState => ({
+      ...oldState,
+      messages: [
+        ...oldState.messages,
+        {
+          outgoing: true,
+          text
+        }
+      ]
+    }));
+  };
 
   return (
     <div className="root">
       <Header />
       <ChatPane messages={state.messages} />
-      <Footer suggestions={state.suggestions} />
+      <Footer sendMessage={sendMessage} suggestions={state.suggestions} />
     </div>
   );
 }
