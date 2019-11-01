@@ -775,12 +775,12 @@ const SECTIONS = {
                         return errorResponse;
                     }
 
-                    const {yes_or_no} = witResponse.entities;
-                    if (yes_or_no == null) {
+                    const {no, yes_or_no} = witResponse.entities;
+                    if (no == null && yes_or_no == null) {
                         return errorResponse;
                     }
                     
-                    if (yes_or_no[0].value === 'no') {
+                    if (no || yes_or_no[0].value === 'no') {
                         return {
                             response: 'That\'s okay! Think about it and we\'ll come back to this another time.',
                             next: 'planning'
@@ -839,6 +839,7 @@ const SECTIONS = {
                 // TODO: Can this be customized to list *what the client likes about smoking*
                 prompt: 'Let\'s do some plannning for the situations where you usually smoke. What are your top triggers?',
                 type: SLOT_TYPES.OPEN_ENDED,
+                useWit: true,
                 onResponse(input, witResponse) {
                     const errorResponse = {
                         reprompt: true,
