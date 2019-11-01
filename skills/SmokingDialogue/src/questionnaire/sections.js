@@ -221,7 +221,7 @@ const SECTIONS = {
                         }
                     }
                     
-                    let resp = 'You are not alone.' + HALF_SEC_BREAK;
+                    let resp = 'You are not alone. ';
                     const {reasonsForSmoking, reasonsForQuitting} = this.userData;
                     if(reasonsForSmoking) {
                         // Build a response addressing all reasons_for_smoking
@@ -413,7 +413,6 @@ const SECTIONS = {
                     return {
                         response: 'Sounds great. I\'m looking forward to helping you quit by '
                             + date.toLocaleString('en-US', { month: 'long', day: 'numeric' }) + '!'
-                            + HALF_SEC_BREAK
                             + 'Let\'s talk again soon!',
                     }
                 }
@@ -702,18 +701,70 @@ const SECTIONS = {
                             + this.userData.smokeOrVape + ' before you quit.'
                     ]);
 
-                    return {
-                        response: prefix + HALF_SEC_BREAK + suffix,
-                        next: 'quitting_aids'
+                    let response = [prefix, suffix].filter(Boolean).join(HALF_SEC_BREAK)
+                        + HALF_SEC_BREAK;
+                    let next = null;
+
+                    // If the user hasn't set quitting aids, ask about those
+                    if (!this.userData.quittingAids) {
+                        next = 'quitting_aids';
                     }
+                    // TODO: add more sections like so:
+                    //  else if (!this.userData.example) {
+                    //      next = 'example';
+                    //  }
+                    // End the session
+                    else {
+                        response += randomChoice([
+                            'Thank you for taking the time to talk to me today. Let\'s talk again soon.',
+                            'It was great to talk to you today. Let\'s talk again soon.',
+                            'That\'s all I have for now. Please talk to me again soon.'
+                        ]);
+                    }
+
+                    return {
+                        response,
+                        next
+                    };
                 }
             },
         ],
-        next: 'quitting_aids',
     },
-    quitting_aids: { // TODO: How to implement allowing users to ask for more info on different methods?
+    quitting_aids: {
         name: 'quitting_aids',
         questions: [
+            {
+                name: 'interested_in_quitting_aids',
+                prompt: 'Would you be interested in talking about quitting aids?',
+                type: SLOT_TYPES.OPEN_ENDED,
+                useWit: true,
+                onResponse(input, witResponse) {
+                    const errorResponse = {
+                        reprompt: true,
+                        response: 'Sorry, I didn\'t understand that. Are you interested in talking about quitting aids?',
+                    };
+                    if (witResponse == null || witResponse.entities == null) {
+                        return errorResponse;
+                    }
+
+                    const {yes_or_no} = witResponse.entities;
+                    if (yes_or_no == null) {
+                        return {
+                            response: 'That\'s okay! Think about it and we\'ll come back to this another time.',
+                        }
+                    }
+
+                    const {quitting_aids} = witResponse.entities;
+                    if (quitting_aids == null) {
+                        return errorResponse;
+                    }
+                    this.userData.quittingAid = quitting_aids[0].value;
+
+                    return {
+                        response: this.userData.quittingAid + ' is a great idea!',
+                    }
+                }
+            },
             {
                 name: 'has_method_to_try', //use wit.ai to parse out specific methods (or a no response) and act accordingly
                 prompt: 'I think we should talk about what method you want to use to quit. '
