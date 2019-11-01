@@ -29,8 +29,19 @@ body {
 }
 
 .Footer .Top {
-  border-top: 1px solid #243b49;
-  padding: 12px;
+  border-bottom: 1px solid #5D727F;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-evenly;
+  padding: 8px;
+}
+
+.Footer .Top .Suggestion {
+  background: #87BCDE;
+  border: 1px solid #2D4554;
+  border-radius: 4px;
+  padding: 4px;
+  margin: 4px 0;
 }
 
 .Footer .Bottom {
