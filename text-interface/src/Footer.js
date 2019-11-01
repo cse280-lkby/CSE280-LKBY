@@ -16,9 +16,11 @@ function Footer(props) {
 
   return (
     <div className="Footer">
-      <div className="Top">
-        {props.suggestions.map(text => <Suggestion key={text} onClick={sendSuggestion} text={text} />)}
-      </div>
+      {props.suggestions && props.suggestions.length > 0 &&
+        <div className="Top">
+          {props.suggestions.map(text => <Suggestion key={text} onClick={sendSuggestion} text={text} />)}
+        </div>
+      }
       <div className="Bottom">
         <input
           className="TextBox"

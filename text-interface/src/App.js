@@ -40,7 +40,8 @@ function App() {
           outgoing: true,
           text
         }
-      ]
+      ],
+      suggestions: []
     }));
   };
 
