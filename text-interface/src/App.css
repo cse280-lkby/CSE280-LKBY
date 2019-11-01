@@ -21,6 +21,28 @@ body {
 .ChatPane {
   flex: auto;
   overflow-y: auto;
+  padding: 12px;
+  padding-bottom: 0;
+}
+
+.ChatPane .ChatMessage {
+  border-radius: 4px;
+  clear: both;
+  font-size: 12px;
+  max-width: 200px;
+  margin-bottom: 12px;
+  padding: 12px;
+}
+
+.ChatPane .ChatMessage.Incoming {
+  background: #2D4554;
+  color: white;
+  float: left;
+}
+
+.ChatPane .ChatMessage.Outgoing {
+  background: #87BCDE;
+  float: right;
 }
 
 .Footer {
