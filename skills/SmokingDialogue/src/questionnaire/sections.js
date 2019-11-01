@@ -748,11 +748,6 @@ const SECTIONS = {
                     // End the session
                     else {
                         next = 'planning';
-                        // response += randomChoice([
-                        //     'Thank you for taking the time to talk to me today. Let\'s talk again soon.',
-                        //     'It was great to talk to you today. Let\'s talk again soon.',
-                        //     'That\'s all I have for now. Please talk to me again soon.'
-                        // ]);
                     }
 
                     return {
@@ -787,27 +782,19 @@ const SECTIONS = {
                         }
                     }
 
-                    const {quitting_aids} = witResponse.entities;
-                    if (quitting_aids == null) {
-                        return errorResponse;
-                    }
-                    this.userData.quittingAid = quitting_aids[0].value;
-
-                    return {
-                        response: this.userData.quittingAid + ' is a great idea!',
+                    if (yes_or_no[0].value === 'no') {
+                        return {
+                            next: 'planning'
+                        };
                     }
                 }
             },
             {
                 name: 'has_method_to_try', //use wit.ai to parse out specific methods (or a no response) and act accordingly
-                prompt: 'I think we should talk about what method you want to use to quit. '
-                    + HALF_SEC_BREAK
-                    + 'Some people like to use a quitting aid such as gum, patches or medication. '
-                    + HALF_SEC_BREAK
-                    + 'Others prefer to quit cold turkey. '
+                prompt: 'Popular quitting aids include nicotine gum, patches and medication. '
+                    + 'Another popular approach is to quit "cold turkey". '
                     + HALF_SEC_BREAK
                     + 'Have you thought about what method you would like to use to quit? '
-                    + HALF_SEC_BREAK
                     + 'If so, what method will you try?',
                 type: SLOT_TYPES.OPEN_ENDED,
                 useWit: true,
@@ -833,10 +820,10 @@ const SECTIONS = {
                     if (quitting_aids == null) {
                         return errorResponse;
                     }
-                    this.userData.quittingAid = quitting_aids[0].value;
+                    this.userData.quittingAids = uniqueValues(quitting_aids);
 
                     return {
-                        response: this.userData.quittingAid + ' is a great idea!',
+                        response: 'That\'s a great idea!' + HALF_SEC_BREAK,
                         next: 'planning'
                     }
                 }
@@ -867,8 +854,14 @@ const SECTIONS = {
                     }
                     this.userData.topTriggers = uniqueValues(reasons_for_smoking);
 
+                    let response = randomChoice([
+                        'Thank you for taking the time to talk to me today. Let\'s talk again soon.',
+                        'It was great to talk to you today. Let\'s talk again soon.',
+                        'That\'s all I have for now. Please talk to me again soon.'
+                    ]);
+
                     return {
-                        response: 'It was great talking with you! I look forward to hearing from you soon!',
+                        response,
                         next: ''
                     }
                 }
