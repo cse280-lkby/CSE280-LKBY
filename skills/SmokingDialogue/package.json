@@ -4,6 +4,8 @@
   "description": "A sample voice app that works with the Jovo Framework",
   "main": "src/index.js",
   "dependencies": {
+    "body-parser": "^1.19.0",
+    "express": "^4.17.1",
     "jovo-db-filedb": "^2.2.14",
     "jovo-framework": "^2.2.19",
     "jovo-platform-alexa": "^2.2.21",

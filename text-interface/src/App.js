@@ -6,7 +6,7 @@ import './App.css';
 
 const TEST_USER_ID = 'text-interface-test-user';
 const TEST_SESSION_ID = TEST_USER_ID + new Date().toString();
-const TEST_ENDPOINT = 'https://localhost:8080/sendMessage';
+const TEST_ENDPOINT = 'http://localhost:8080/sendMessage';
 
 async function sendMessageAndGetReply(text) {
   const reqData = {
