@@ -24,6 +24,7 @@ async function handleMessage(userID, sessionID, message) {
 
     // TODO implement suggestions, indicate end of conversation?
     const response = {
+        finished: false,
         message: null,
         suggestions: [],
     };
@@ -35,7 +36,8 @@ async function handleMessage(userID, sessionID, message) {
         return message;
     }
     const tell = (speech) => {
-        this.tell(speech);
+        response.message = speech;
+        response.finished = true;
     };
 
     const userData = userDataTable[userID];
