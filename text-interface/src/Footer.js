@@ -2,6 +2,7 @@ import React from 'react';
 import Suggestion from './Suggestion';
 
 function Footer(props) {
+  const textBoxRef = React.useRef();
   const [draft, setDraft] = React.useState('');
   const handleSend = () => {
     if (draft.trim().length === 0) {
@@ -13,6 +14,12 @@ function Footer(props) {
   const sendSuggestion = (text) => {
     props.sendMessage(text);
   };
+
+  React.useEffect(() => {
+    if (!props.isLoading && textBoxRef.current) {
+      textBoxRef.current.focus();
+    }
+  }, [props.isLoading]);
 
   return (
     <div className="Footer">
@@ -32,6 +39,7 @@ function Footer(props) {
             }
           }}
           placeholder="Write a message..."
+          ref={textBoxRef}
           type="text"
           value={draft}
         />
