@@ -411,7 +411,7 @@ const SECTIONS = {
 
                     return {
                         response: 'Sounds great. I\'m looking forward to helping you quit by '
-                            + date.toLocaleString('en-US', { month: 'long', day: 'numeric' }) + '!'
+                            + date.toLocaleString('en-US', { month: 'long', day: 'numeric' }) + '! '
                             + 'Let\'s talk again soon!',
                     }
                 }
