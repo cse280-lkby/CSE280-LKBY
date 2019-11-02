@@ -6,6 +6,9 @@ const DialogueFramework = require('./dialogue-framework');
 const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
+const cors = require('cors');
+
+app.use(cors());
 
 // TODO save this somewhere, maybe reuse jovo filedb
 const userDataTable = {};
@@ -44,17 +47,22 @@ async function handleMessage(userID, sessionID, message) {
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
 
+// enable pre-flight CORS 
+app.options('/sendMessage', cors());
+
 app.post('/sendMessage', async (req, res) => {
+    console.log('Serving request', req.body);
     const request = req.body;
     if (!request) {
         res.sendStatus(500);
+        return;
     }
     const {userID, sessionID, message} = request;
     if (!userID || !sessionID || !message) {
         res.sendStatus(500);
+        return;
     }
     const response = await handleMessage(userID, sessionID, message);
-    res.setHeader('Access-Control-Allow-Origin', '*');
     res.send(response);
 });
 
