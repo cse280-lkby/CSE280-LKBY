@@ -110,6 +110,7 @@ const SECTIONS = {
                 //Ask about whether you primarily smoke or vape. Use answer as context for rest of conversation
                 name: 'vape_or_smoke',
                 prompt: 'To start off, I\'d like to learn more about you. Do you primarily smoke or vape?',
+                suggestions: ['I primarily smoke', 'I primarily vape'],
                 type: SLOT_TYPES.OPEN_ENDED,
                 useWit: true,
                 onResponse(input, witResponse) {

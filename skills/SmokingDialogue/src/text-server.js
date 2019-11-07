@@ -29,8 +29,9 @@ async function handleMessage(userID, sessionID, message) {
         suggestions: [],
     };
 
-    const ask = (_slotName, prompt, _reprompt) => {
+    const ask = (_slotName, prompt, _reprompt, suggestions) => {
         response.message = prompt;
+        response.suggestions = suggestions || [];
     };
     const getSlot = (_slotName) => {
         return message;

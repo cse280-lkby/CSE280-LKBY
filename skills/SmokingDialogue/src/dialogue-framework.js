@@ -17,14 +17,20 @@ function logUserEvent(userData, type, data) {
     console.log("Logged event of type ", type, ": ", data);
 }
 
+function callIfFunction(obj, thisArg) {
+    return typeof obj === 'function'
+        ? obj.call(thisArg)
+        : obj;
+}
+
 module.exports = {
     intro({userData}) {
         let intro = CONFIG.intro || 'Hi, ready to get started?';
 
         if (SECTIONS.__intro__ != null) {
-            intro = typeof SECTIONS.__intro__ === 'function'
-                ? SECTIONS.__intro__.call({ userData })
-                : SECTIONS.__intro__;
+            intro = callIfFunction(SECTIONS.__intro__, {
+                userData: userData.qUserData || {}
+            });
         }
 
         logUserEvent(userData, Events.SKILL_INVOKED, {
@@ -75,9 +81,7 @@ module.exports = {
                 const thisArg = { context, userData: userData.qUserData };
 
                 // Get the main section
-                const mainSection = typeof SECTIONS.__main__ === 'function'
-                    ? SECTIONS.__main__.call(thisArg)
-                    : SECTIONS.__main__;
+                const mainSection = callIfFunction(SECTIONS.__main__, thisArg);
 
                 // Initialize the new questionnaire session
                 sessionData.questionnaireState = {
@@ -126,14 +130,16 @@ module.exports = {
                 });
                 // Validate answer, if repromptStr is set, slot is invalid
                 let repromptStr = type.validate && type.validate(lastAnswer);
+                const suggestions = callIfFunction(lastQuestion.suggestions, thisArg);
                 if (typeof repromptStr === 'string') {
                     logUserEvent(userData, Events.REPROMPT, {
                         issue: 'question_type_mismatch',
                         prompt: repromptStr,
                         section: section.name,
                         question: lastQuestion.name,
+                        suggestions
                     });
-                    ask(type.name, repromptStr);
+                    ask(type.name, repromptStr, repromptStr, suggestions);
                     return;
                 }
 
@@ -171,13 +177,15 @@ module.exports = {
                         if (typeof responseResult === 'object') {
                             if (responseResult.reprompt) {
                                 repromptStr = responseResult.response || responseResult.reprompt;
+                                const suggestions = callIfFunction(lastQuestion.suggestions, thisArg);
                                 logUserEvent(userData, Events.REPROMPT, {
                                     issue: 'handler_forced',
                                     prompt: repromptStr,
                                     section: section.name,
                                     question: lastQuestion.name,
+                                    suggestions
                                 });
-                                ask(type.name, repromptStr);
+                                ask(type.name, repromptStr, repromptStr, suggestions);
                                 return;
                             }
                             if (responseResult.response) {
@@ -236,20 +244,22 @@ module.exports = {
             const question = questions[questionId];
 
             // The prompt for this question
-            const questionPrompt = typeof question.prompt === 'function'
-                ? question.prompt.call(thisArg)
-                : question.prompt;
+            const questionPrompt = callIfFunction(question.prompt, thisArg);
 
             // The previous response (if given) plus the prompt for this question.
-            const nextPrompt = `${prevResponse ? prevResponse + '. ' : ''}${questionPrompt}`;
+            const fullPrompt = `${prevResponse ? prevResponse + '. ' : ''}${questionPrompt}`;
+
+            // The suggested answers
+            const suggestions = callIfFunction(question.suggestions, thisArg);
 
             // Elicit value of appropritate slot based on question type
-            ask(question.type.name, nextPrompt, question.reprompt);
+            ask(question.type.name, fullPrompt, question.reprompt, suggestions);
 
             logUserEvent(userData, Events.PROMPT, {
                 section: section.name,
                 question: question.name,
                 prompt: questionPrompt,
+                suggestions
             });
 
             // Move state to the next question

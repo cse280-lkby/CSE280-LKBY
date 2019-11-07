@@ -38,7 +38,7 @@ app.setHandler({
         // First activated by responding yes to consent question.
         // Then continually activated by Alexa dialog fulfillment.
         async SurveyQuestionIntent() {
-            const ask = (slotName, prompt, reprompt) => {
+            const ask = (slotName, prompt, reprompt, _suggestions) => {
                 this.$alexaSkill.$dialog.elicitSlot(slotName, prompt, reprompt);
             };
             const getSlot = (slotName) => {
