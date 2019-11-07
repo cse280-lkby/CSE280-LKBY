@@ -39,6 +39,7 @@ async function handleMessage(userID, sessionID, message) {
     const tell = (speech) => {
         response.message = speech;
         response.finished = true;
+        sessionDataTable[sessionID] = {};
     };
 
     const userData = userDataTable[userID];
