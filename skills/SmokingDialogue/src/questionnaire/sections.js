@@ -140,6 +140,7 @@ const SECTIONS = {
                 prompt() {
                     return 'When was the last time you ' + this.userData.smokeOrVape + 'd?';
                 },
+                suggestions: ['Today', 'Yesterday', 'A few days ago', 'A week ago or more'],
                 type: SLOT_TYPES.OPEN_ENDED,
                 useWit: true,
                 onResponse(input, witResponse) {
@@ -172,6 +173,7 @@ const SECTIONS = {
                         + (this.userData.smokeOrVape === 'vape' ? 'pod' : 'pack')
                         + ' usually last for you?';
                 },
+                suggestions: ['About one day', 'A few days', 'A week or longer'],
                 type: SLOT_TYPES.OPEN_ENDED,
                 useWit: true,
                 onResponse(input, witResponse) {
@@ -198,6 +200,7 @@ const SECTIONS = {
                     return 'Here\'s a question you probably weren\'t expecting, what made you start '
                         + (this.userData.smokeOrVape === 'vape' ? 'vaping' : 'smoking') + '?';
                 },
+                suggestions: ['Friends', 'Boredom', 'School', 'Depression', 'Stress'],
                 type: SLOT_TYPES.OPEN_ENDED,
                 useWit: true,
                 onResponse(input, witResponse) {
@@ -211,6 +214,7 @@ const SECTIONS = {
             },{
                 name: 'reasons_for_quitting',
                 prompt: 'I\'m wondering if a recent event inspired you to quit. What are your main reasons for quitting now?',
+                suggestions: ['Feeling sick', 'Too expensive', 'Disgust', 'Others'],
                 type: SLOT_TYPES.OPEN_ENDED,
                 useWit: true,
                 onResponse(input, witResponse) {
@@ -243,7 +247,7 @@ const SECTIONS = {
                                         + 'lot of influence.';
                                 case 'depression':
                                     return (this.userData.smokeOrVape === 'vape' ? 'Vaping' : 'Smoking')
-                                        + 'is often used as a way to cope with depression, '
+                                        + ' is often used as a way to cope with depression, '
                                         + 'but it\'s important to not become too dependent on it!';
                                 case 'stress':
                                     return 'Many people in similar situations start '
@@ -318,6 +322,7 @@ const SECTIONS = {
                         + HALF_SEC_BREAK
                         + '. I will still be here to talk whenever you need me. Does this sound good?';
                     },
+                suggestions: ['Yes', 'No'],
                 type: SLOT_TYPES.OPEN_ENDED,
                 useWit: true,
                 onResponse(input, witResponse) {
@@ -362,6 +367,9 @@ const SECTIONS = {
                     return 'When do you think you would like to be done with '
                         + (this.userData.smokeOrVape === 'vape' ? 'vaping' : 'smoking')
                         + '?';
+                },
+                suggestions() {
+                    return ['In a few days', 'In a week', 'In a month'];
                 },
                 type: SLOT_TYPES.OPEN_ENDED,
                 useWit: true,
