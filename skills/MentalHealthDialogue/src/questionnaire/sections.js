@@ -1,5 +1,10 @@
 const SLOT_TYPES = require('./slot-types');
 
+// function used to get random responses each time through conversation
+function randomChoice(list) {
+    return list[Math.floor(Math.random() * list.length)];
+}
+
 /*
  * Sections:
  *  must contain a 'name', a list of 'questions' (at least 1), and can have a 'next'.
@@ -97,7 +102,7 @@ const SECTIONS = {
                 useWit: true,
                 onResponse(input, witResponse) {
                     const errorResponse = { response: 'Sorry, I didn\'t understand that.', next: 'check_in' };
-                
+                    let resp = '';
                     if (witResponse != null) {
                         console.log('Got response from Wit API!', JSON.stringify(witResponse));
                         const {mood} = witResponse.entities;
@@ -112,7 +117,15 @@ const SECTIONS = {
                         if (moodStr == "negative") {
                             return 'tempNegative';
                         }
-                        return 'tempPositive';
+                        else {
+                            resp += randomChoice([
+                                'That\'s great that you\'re feeling '+ (this.context.currentMood) + ', have a nice rest of your day. Be sure to check back in tomorrow!',
+                                'That\'s awesome, I\'m glad you\'re feeling ' + (this.context.currentMood) + ', keep that up and check back in soon!',
+                                'Wow that\'s excellent! I\'m glad you\'re feeling ' + (this.context.currentMood) + '. Keep the good mood going, have a great rest of your day, and check back in soon!',
+                                'Yay! I love it when you feel ' + (this.context.currentMood) + '. Go ahead and have a great rest of your day, don’t forget to check back in soon!'                    
+                            ]);
+                            return {response: resp, next: 'pos_ending'};
+                        }
                     }
                 }
             },
@@ -146,57 +159,48 @@ const SECTIONS = {
                             const issueStr = issues[i].value;
                             if (issueStr == "exam") {
                                 // inside of each of the possible matches, add to the returned string
-                                resp += 'Ah, Exams. Even though exams seem so important, your entire future doesn\'t depend on them. Don\'t give a test the power to define you! <break time="1s"/>';
 
+                                resp += randomChoice([
+                                    'Ah, Exams. Even though exams seem so important, your entire future doesn\'t depend on them. Don\'t give a test the power to define you! <break time="1s"/>',
+                                    'I remember the first time I took an exam in college, but I did survive! So, you will too! Just try your best and you\'ll be happy.'                    
+                                ]);
                                 this.context.exams = "exams";
                             }
                             else if (issueStr == "course_material") {
-                                resp += 'I never heard anyone say college is easy. Try to attend office hours and find a group of classmates to study with. <break time="1s"/>';
+
+                                resp += randomChoice([
+                                    'I never heard anyone say college is easy. Try to attend office hours and find a group of classmates to study with. <break time="1s"/>',
+                                    'Even though it may seem like everyone knows what they\'re doing, that\'s not true! Everyone struggles in different ways, but working together can help you learn even more.'                    
+                                ]);
 
                                 this.context.courseMaterials = "course materials";
                             }
                             else if (issueStr == "time_management") {
-                                resp += 'Don\'t you wish there was more time in a day? That probably won\'t happen. '
-                                + ' Instead of putting things off until later and feeling guilty about it, try to start your work now. <break time="1s"/> ';
-
+                                resp += randomChoice([
+                                    'Don\'t you wish there was more time in a day? That probably won\'t happen. '
+                                    + ' Instead of putting things off until later and feeling guilty about it, try to start your work now. <break time="1s"/> ',
+                                    'Something I found useful when managing my time is making a list of what I need to accomplish. That way, you can get satisfaction of crossing something off when you finish!'                    
+                                ]);
                                 this.context.timeMan = "time managment";
                             }
                             else if (issueStr == "sleep") {
-                                resp += 'I know that sleep is super important to me too. Before bed, try to relax and imagine you are in your happy place, whether that\'s a beach, a hotel, a spa, or even F M L. <break time="1s"/>';
-
+                                resp += randomChoice([
+                                    'Something to help you sleep better at night is to set aside worry time during the day. Designate a short amount of time to think about the things dragging you down, just make sure it\'s not too close to bed time <break time="1s"/>',
+                                    'Something to help you sleep better at night is to create a todo list of what you need to accomplish, that way tomorrow you will know the things you need to do and won\'t procrastinate <break time="1s"/>',
+                                    'Something to help you sleep better at night is to have a buffer zone: take 15 minutes befor bedtime to maybe light a candle or take a bath to relax yourself'                                
+                                ]);
                                 this.context.sleep = "sleeping";
                             }
                             else {
                             }
                         }
                         // return the response, jump to another question
-                        return {response: resp};
-
-                /*
-                        if(this.context.exams != null) {return 'tempExam';}
-                        if(this.context.courseMaterials != null) {return 'tempCourseMaterials';}
-                        if(this.context.timeMan != null) {return 'tempTimeManagement';}
-                        if(this.context.sleep != null) {return 'tempSleep';}
-                */
+                        return {response: resp, next: 'breathing_exercise'};
                     }
                 }
             },
         ],
         next: 'breathing_exercise'
-    },
-    tempPositive: {
-        name: 'tempPositive',
-        questions: [
-            {
-                name: 'positive',
-                prompt: 'That\'s great, have a nice rest of your day. Be sure to check back in tomorrow!',
-                type: SLOT_TYPES.OPEN_ENDED,
-                onResponse(input) {
-                    return 'check_in'      ;              
-                }
-            },
-        ],
-        next: null
     },
     contactCenter: {
         name: 'contactCenter',
@@ -492,6 +496,20 @@ const SECTIONS = {
                     return 'It was a pleasure speaking with you today. Thanks for sharing your current struggles with '
                         + response
                         + '. Next time we can check in on how those are going for you.';
+                },
+                type: SLOT_TYPES.OPEN_ENDED
+            }
+        ],
+        next: '' // TODO
+    },
+    pos_ending: {
+        name: 'pos_ending',
+        questions: [
+            {
+                name: 'pos_ending',
+                // TODO: Can this be customized to list *what the client likes about smoking*
+                prompt() { 
+                    return '';
                 },
                 type: SLOT_TYPES.OPEN_ENDED
             }
