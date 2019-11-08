@@ -222,8 +222,8 @@ module.exports = {
                     // If there is not a 'next' section, questionnaire is over.
                     // Note: prevResponse from questionnaireState should be said since this the last chance to do it.
                     const prevResponses = [prevResponse, sessionData.questionnaireState.prevResponse]
-                        .filter(Boolean).join(". ");
-                    const finalMessage = `${prevResponses ? prevResponses + '. ' : ''}${CONFIG.completed}`;
+                        .filter(Boolean).join(" ");
+                    const finalMessage = `${prevResponses ? prevResponses : ''}${CONFIG.completed}`;
                     tell(finalMessage);
                     userData.questionnaire.__finished__ = true;
 
@@ -247,7 +247,7 @@ module.exports = {
             const questionPrompt = callIfFunction(question.prompt, thisArg);
 
             // The previous response (if given) plus the prompt for this question.
-            const fullPrompt = `${prevResponse ? prevResponse + '. ' : ''}${questionPrompt}`;
+            const fullPrompt = `${prevResponse ? prevResponse : ''}${questionPrompt}`;
 
             // The suggested answers
             const suggestions = callIfFunction(question.suggestions, thisArg);
