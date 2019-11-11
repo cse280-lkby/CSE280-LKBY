@@ -104,7 +104,11 @@ function App() {
           <>
             <Header />
             <ChatPane messages={state.messages} />
-            <Footer isLoading={state.isLoading} sendMessage={sendMessage} suggestions={state.suggestions} /> */}
+            <Footer
+              isLoading={state.isLoading}
+              sendMessage={sendMessage}
+              suggestions={state.suggestions}
+            />
           </>
         )}
     </div>

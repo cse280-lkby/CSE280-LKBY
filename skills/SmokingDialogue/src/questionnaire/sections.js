@@ -173,7 +173,7 @@ const SECTIONS = {
                         + (this.userData.smokeOrVape === 'vape' ? 'pod' : 'pack')
                         + ' usually last for you?';
                 },
-                suggestions: ['About one day', 'A few days', 'A week or longer'],
+                suggestions: ['About one day', 'A few days', 'About a week', 'A month'],
                 type: SLOT_TYPES.OPEN_ENDED,
                 useWit: true,
                 onResponse(input, witResponse) {
@@ -200,7 +200,7 @@ const SECTIONS = {
                     return 'Here\'s a question you probably weren\'t expecting, what made you start '
                         + (this.userData.smokeOrVape === 'vape' ? 'vaping' : 'smoking') + '?';
                 },
-                suggestions: ['Friends', 'Boredom', 'School', 'Depression', 'Stress'],
+                suggestions: ['Friends', 'Boredom', 'School', 'Depression', 'Stress', 'Cool'],
                 type: SLOT_TYPES.OPEN_ENDED,
                 useWit: true,
                 onResponse(input, witResponse) {
@@ -234,28 +234,28 @@ const SECTIONS = {
                             switch (reason) {
                                 case 'addiction':
                                     return 'Addiction is an extremely common issue among smokers, '
-                                        + 'and is very difficult to break';
+                                        + 'and is very difficult to break. ';
                                 case 'cool':
-                                    return (this.userData.smokeOrVape === 'vape' ? 'vaping' : 'smoking')
-                                        + ' is often portrayed as really cool, which can make it hard to resist.';
+                                    return (this.userData.smokeOrVape === 'vape' ? 'Vaping' : 'Smoking')
+                                        + ' is often portrayed as really cool, which can make it hard to resist. ';
                                 case 'pleasure':
                                     return 'Although it may seem fun initially, '
                                         + (this.userData.smokeOrVape === 'vape' ? 'vaping' : 'smoking')
-                                        + ' is not worth it and will quickly cause problems in your life.';
+                                        + ' is not worth it and will quickly cause problems in your life. ';
                                 case 'school':
                                     return 'School is a common social situation where peer pressure has a '
-                                        + 'lot of influence.';
+                                        + 'lot of influence. ';
                                 case 'depression':
                                     return (this.userData.smokeOrVape === 'vape' ? 'Vaping' : 'Smoking')
                                         + ' is often used as a way to cope with depression, '
-                                        + 'but it\'s important to not become too dependent on it!';
+                                        + 'but it\'s important to not become too dependent on it! ';
                                 case 'stress':
                                     return 'Many people in similar situations start '
                                         + (this.userData.smokeOrVape === 'vape' ? 'vaping' : 'smoking')
-                                        + ' to try to cope with what they are going through in life';
+                                        + ' to try to cope with what they are going through in life. ';
                                 case 'friends':
                                     return 'If your friends ' + this.userData.smokeOrVape
-                                        + ', it may be even harder for you to stop';
+                                        + ', it may be even harder for you to stop. ';
                                 default:
                                     console.error('Unhandled reason for smoking! Reason is: ', reason);
                                     return '';
@@ -274,10 +274,10 @@ const SECTIONS = {
                                 case 'expensive':
                                     return (this.userData.smokeOrVape === 'vape' ? 'Vaping' : 'Smoking')
                                         + ' is much more expensive than most people realize. Quitting can'
-                                        + ' save you a lot of money'
+                                        + ' save you a lot of money.'
                                 case 'others':
                                     return 'It\'s great to hear that there people in your life motivating you '
-                                        + 'to quit';
+                                        + 'to quit.';
                                 case 'sick':
                                     return 'I\'m sorry that you are feeling sick. I hope that you will feel much '
                                         + 'better after quitting!';
@@ -437,6 +437,7 @@ const SECTIONS = {
             {
                 name: 'quit_date_passed',
                 prompt: 'I see that your quit date has passed, how did it go?',
+                suggestions: ['It went well!', 'It didn\'t go well, but I look forward to trying again!'],
                 type: SLOT_TYPES.OPEN_ENDED,
                 useWit: true,
                 onResponse(input, witResponse) {
@@ -594,6 +595,7 @@ const SECTIONS = {
                 name: 'quit_successfully',
                 prompt: 'Do you want to set a new quit date?',
                 type: SLOT_TYPES.OPEN_ENDED,
+                suggestions: ['Yes', 'No'],
                 useWit: true,
                 onResponse(input, witResponse) {
                     const errorResponse = {
@@ -653,6 +655,7 @@ const SECTIONS = {
                 name: 'successful_quitting_aid',
                 prompt: 'What quitting aids worked the best for you?',
                 type: SLOT_TYPES.OPEN_ENDED,
+                suggestions: ['Cold turkey', 'Patches', 'Gum', 'Medication'],
                 useWit: true,
                 onResponse(input, witResponse) {
                     const errorResponse = {
@@ -685,6 +688,7 @@ const SECTIONS = {
                 name: 'quit_date_upcoming_emotion',
                 prompt: 'Hey, it looks like your quit date is coming up soon. How are you feeling about it?',
                 type: SLOT_TYPES.OPEN_ENDED,
+                suggestions: ['Nervous...', 'Pretty good!', 'Sad'],
                 useWit: true,
                 onResponse(input, witResponse) {
                     const errorResponse = {
@@ -774,6 +778,7 @@ const SECTIONS = {
                 name: 'interested_in_quitting_aids',
                 prompt: 'Would you be interested in talking about quitting aids?',
                 type: SLOT_TYPES.OPEN_ENDED,
+                suggestions: ['Yes', 'No'],
                 useWit: true,
                 onResponse(input, witResponse) {
                     const errorResponse = {
@@ -805,6 +810,7 @@ const SECTIONS = {
                     + 'Have you thought about what method you would like to use to quit? '
                     + 'If so, what method will you try?',
                 type: SLOT_TYPES.OPEN_ENDED,
+                suggestions: ['No', 'Cold turkey', 'Patches', 'Gum', 'Medication'],
                 useWit: true,
                 onResponse(input, witResponse) {
                     const errorResponse = {
