@@ -10,6 +10,40 @@ body {
   overflow-y: hidden;
 }
 
+.LoginContainer {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  justify-content: center;
+}
+
+.Login {
+  text-align: center;
+  width: 300px;
+}
+
+.Login .LoginStrip {
+  display: flex;
+  margin-top: 12px;
+}
+
+.Login .LoginStrip .TextBox {
+  border: 1px solid #2D4554;
+  border-radius: 4px;
+  flex: auto;
+  padding: 8px;
+}
+
+.Login .LoginStrip .SubmitButton {
+  background: #87BCDE;
+  border: 1px solid #2D4554;
+  border-radius: 4px;
+  color: black;
+  flex: none;
+  margin-left: 8px;
+}
+
 .Header {
   background: #243b49;
   color: white;
