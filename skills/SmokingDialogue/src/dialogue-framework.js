@@ -1,4 +1,5 @@
 const { CONFIG, SECTIONS } = require('./questionnaire');
+const { sentenceJoin } = require('./questionnaire/util');
 const Events = require('./events');
 const {serializeError} = require('serialize-error');
 
@@ -221,9 +222,12 @@ module.exports = {
                 if (!next) {
                     // If there is not a 'next' section, questionnaire is over.
                     // Note: prevResponse from questionnaireState should be said since this the last chance to do it.
-                    const prevResponses = [prevResponse, sessionData.questionnaireState.prevResponse]
-                        .filter(Boolean).join(" ");
-                    const finalMessage = `${prevResponses ? prevResponses : ''}${CONFIG.completed}`;
+                    const finalMessage = sentenceJoin([
+                        prevResponse,
+                        sessionData.questionnaireState.prevResponse,
+                        CONFIG.completed
+                    ]);
+
                     tell(finalMessage);
                     userData.questionnaire.__finished__ = true;
 
@@ -247,7 +251,10 @@ module.exports = {
             const questionPrompt = callIfFunction(question.prompt, thisArg);
 
             // The previous response (if given) plus the prompt for this question.
-            const fullPrompt = `${prevResponse ? prevResponse : ''}${questionPrompt}`;
+            const fullPrompt = sentenceJoin([
+                prevResponse,
+                questionPrompt
+            ]);
 
             // The suggested answers
             const suggestions = callIfFunction(question.suggestions, thisArg);

@@ -1,29 +1,15 @@
 const SLOT_TYPES = require('./slot-types');
+const {
+    asDate,
+    breakForSec,
+    dedupe,
+    randomChoice,
+    sentenceJoin,
+    uniqueValues,
+} = require('./util');
 
 const DAYS_UNTIL_CONSIDERED_QUIT = 4;
 const HALF_SEC_BREAK = breakForSec(0.5);
-
-function dedupe(list) {
-    return [...(new Set(list))];
-}
-
-function uniqueValues(witEntity) {
-    if (witEntity == null) return [];
-    return dedupe(witEntity.map(ent => ent.value));
-}
-
-function randomChoice(list) {
-    return list[Math.floor(Math.random() * list.length)];
-}
-
-function asDate(dateStr) {
-    return typeof dateStr === 'string' ? new Date(dateStr) : dateStr;
-}
-
-function breakForSec(sec) {
-    return ` <break time="${sec.toFixed(1)}s"/> `;
-}
-
 
 /*
  * Sections:
@@ -230,7 +216,7 @@ const SECTIONS = {
                     const {reasonsForSmoking, reasonsForQuitting} = this.userData;
                     if(reasonsForSmoking) {
                         // Build a response addressing all reasons_for_smoking
-                        resp += dedupe(reasonsForSmoking.map(reason => {
+                        resp += sentenceJoin(dedupe(reasonsForSmoking.map(reason => {
                             switch (reason) {
                                 case 'addiction':
                                     return 'Addiction is an extremely common issue among smokers, '
@@ -260,12 +246,12 @@ const SECTIONS = {
                                     console.error('Unhandled reason for smoking! Reason is: ', reason);
                                     return '';
                             }
-                        }).filter(Boolean)).join(HALF_SEC_BREAK) + HALF_SEC_BREAK;
+                        }).filter(Boolean)), HALF_SEC_BREAK) + HALF_SEC_BREAK;
                     }
 
                     if(reasonsForQuitting != null) {
                         // Build a response addressing all reasons_for_quitting
-                        resp += dedupe(reasonsForQuitting.map(reason => {
+                        resp += sentenceJoin(dedupe(reasonsForQuitting.map(reason => {
                             switch (reason) {
                                 case 'hate it':
                                     return 'I\'m glad that you are fed up with '
@@ -285,7 +271,7 @@ const SECTIONS = {
                                     console.error('Unhandled reason for smoking! Reason is: ', reason);
                                     return '';
                             }
-                        }).filter(Boolean)).join(HALF_SEC_BREAK) + HALF_SEC_BREAK;
+                        }).filter(Boolean)), HALF_SEC_BREAK) + HALF_SEC_BREAK;
                     }
 
                     // Based on the user's dateLastSmoked, they may be considered to have already quit
@@ -469,7 +455,7 @@ const SECTIONS = {
                     }
 
                     if (reasons_for_smoking != null) {
-                        resp += dedupe(reasonsForSmoking.map(reason => {
+                        resp += sentenceJoin(dedupe(reasonsForSmoking.map(reason => {
                             switch (reason) {
                                 case 'addiction':
                                     return randomChoice([
@@ -521,7 +507,7 @@ const SECTIONS = {
                                     console.error('Unhandled reason for smoking! Reason is: ', reason);
                                     return '';
                             }
-                        }).filter(Boolean)).join(HALF_SEC_BREAK) + HALF_SEC_BREAK;
+                        }).filter(Boolean)), HALF_SEC_BREAK) + HALF_SEC_BREAK;
                     }
 
                     resp += randomChoice([
@@ -722,7 +708,7 @@ const SECTIONS = {
                             'I\'m so glad to hear that you are optimistic!'
                         ]));
                     }
-                    const prefix = prefixes.join(HALF_SEC_BREAK);
+                    const prefix = sentenceJoin(prefixes, HALF_SEC_BREAK);
 
                     const suffix = randomChoice([
                         'I will be here for you all the time. You can also call '
@@ -746,7 +732,7 @@ const SECTIONS = {
                             + 'to cut down on the amount in regular intervals leading up to your quit date.'
                     ]);
 
-                    let response = [prefix, suffix].filter(Boolean).join(HALF_SEC_BREAK)
+                    let response = sentenceJoin([prefix, suffix], HALF_SEC_BREAK)
                         + HALF_SEC_BREAK;
                     let next = null;
 
