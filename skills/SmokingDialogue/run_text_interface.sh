@@ -8,4 +8,4 @@ npm run build
 
 # Run the server
 cd $SERVERDIR
-node src/text-server.js
+node src/text-server.js $1

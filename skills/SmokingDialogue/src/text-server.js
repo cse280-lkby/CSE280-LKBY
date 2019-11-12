@@ -1,6 +1,7 @@
 'use strict';
 
-const PORT = 8080;
+const process = require('process');
+const PORT = process.argv[2] && Number(process.argv[2]) || 80;
 
 const DialogueFramework = require('./dialogue-framework');
 const express = require('express');
