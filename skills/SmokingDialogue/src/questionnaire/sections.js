@@ -306,7 +306,7 @@ const SECTIONS = {
                         + 'I\'ve noted that you have already quit on '
                         + this.userData.quitDate.toLocaleString('en-US', { month: 'long', day: 'numeric' })
                         + HALF_SEC_BREAK
-                        + '. I will still be here to talk whenever you need me. Does this sound good?';
+                        + 'I will still be here to talk whenever you need me. Does this sound good?';
                     },
                 suggestions: ['Yes', 'No'],
                 type: SLOT_TYPES.OPEN_ENDED,
