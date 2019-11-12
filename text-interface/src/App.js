@@ -3,6 +3,7 @@ import Header from './Header';
 import ChatPane from './ChatPane';
 import Footer from './Footer';
 import Login from './Login';
+import Div100vh from 'react-div-100vh'
 import './App.css';
 
 const TEST_ENDPOINT = '/sendMessage';
@@ -97,7 +98,7 @@ function App() {
   };
 
   return (
-    <div className="root">
+    <Div100vh className="root">
       {state.session == null
         ? <Login setUserID={setUserID} />
         : (
@@ -111,7 +112,7 @@ function App() {
             />
           </>
         )}
-    </div>
+    </Div100vh>
   );
 }
 

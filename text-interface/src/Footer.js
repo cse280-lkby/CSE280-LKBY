@@ -31,10 +31,11 @@ function Footer(props) {
       <div className="Bottom">
         <input
           className="TextBox"
-          disabled={props.isLoading}
+          // Not disabling this anymore because keyboard flickering on mobile
+          // disabled={props.isLoading}
           onChange={evt => setDraft(evt.target.value)}
           onKeyPress={evt => {
-            if (evt.key === 'Enter') {
+            if (evt.key === 'Enter' && !props.isLoading) {
               handleSend();
             }
           }}
