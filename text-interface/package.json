@@ -2,6 +2,7 @@
   "name": "text-interface",
   "version": "0.1.0",
   "private": true,
+  "homepage": "http://ec2-3-80-138-232.compute-1.amazonaws.com/",
   "dependencies": {
     "react": "^16.11.0",
     "react-dom": "^16.11.0",

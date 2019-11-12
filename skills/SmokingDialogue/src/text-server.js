@@ -70,4 +70,6 @@ app.post('/sendMessage', async (req, res) => {
     res.send(response);
 });
 
+app.use(express.static('../../text-interface/build'));
+
 app.listen(PORT, () => console.log(`Listening on port ${PORT}!`));

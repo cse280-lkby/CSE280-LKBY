@@ -5,7 +5,7 @@ import Footer from './Footer';
 import Login from './Login';
 import './App.css';
 
-const TEST_ENDPOINT = 'http://localhost:8080/sendMessage';
+const TEST_ENDPOINT = '/sendMessage';
 
 async function sendMessageAndGetReply(session, text) {
   const reqData = {
