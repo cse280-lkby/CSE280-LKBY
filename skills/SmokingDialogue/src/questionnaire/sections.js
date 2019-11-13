@@ -377,7 +377,7 @@ const SECTIONS = {
                                 + HALF_SEC_BREAK
                                 + 'The best quit date is one that will motivate you '
                                 + 'to stop soon but still give you enough time to ease off. '
-                                + + HALF_SEC_BREAK
+                                + HALF_SEC_BREAK
                                 + 'Take your time deciding when you want to quit by and let me know later!',
                             next: ''
                         };
