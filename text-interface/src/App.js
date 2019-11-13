@@ -30,7 +30,12 @@ async function sendMessageAndGetReply(session, text) {
 function App() {
   const [state, setState] = React.useState({
     session: null,
-    messages: [],
+    messages: [
+      {
+        type: 'system',
+        text: 'this is a test system message lol'
+      }
+    ],
     suggestions: [],
     isLoading: false,
   });
@@ -50,7 +55,7 @@ function App() {
 
   const sendMessage = async (text) => {
     const newMsg = {
-      outgoing: true,
+      type: 'outgoing',
       text
     };
 
@@ -70,19 +75,25 @@ function App() {
       const response = await sendMessageAndGetReply(state.session, text);
       if (!response) throw new Error();
 
-      const { message, suggestions } = response;
+      const { message, suggestions, finished } = response;
       if (!message || !suggestions) throw new Error();
 
-      const newReply = {
-        outgoing: false,
-        text: message
-      };
+      const newMessages = [
+        {
+          type: 'incoming',
+          text: message
+        },
+        finished && {
+          type: 'system',
+          text: 'My College Buddy ended the conversation'
+        }
+      ].filter(Boolean);
 
       setState(oldState => ({
         ...oldState,
         messages: [
           ...oldState.messages,
-          newReply
+          ...newMessages
         ],
         suggestions,
         isLoading: false

@@ -7,9 +7,17 @@ function withBreaks(text) {
 
 function ChatMessage(props) {
   return (
-    <div className={`ChatMessage ${props.msg.outgoing ? 'Outgoing' : 'Incoming'}`}>
-      {withBreaks(props.msg.text).map(line => <div>{line}</div>)}
-    </div>
+    props.msg.type === 'system'
+      ? (
+        <div className="SystemMessage">
+          {props.msg.text}
+        </div>
+      )
+      : (
+        <div className={`ChatMessage ${props.msg.type === 'outgoing' ? 'Outgoing' : 'Incoming'}`}>
+          {withBreaks(props.msg.text).map(line => <div>{line}</div>)}
+        </div>
+      )
   );
 }
 

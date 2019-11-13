@@ -81,6 +81,21 @@ body {
   float: right;
 }
 
+.ChatPane .SystemMessage {
+  background-color: gray;
+  border-radius: 4px;
+  clear: both;
+  color: white;
+  font-size: 12px;
+  margin: auto;
+  margin-bottom: 12px;
+  max-width: 80%;
+  overflow: hidden;
+  padding: 12px;
+  width: fit-content;
+  word-break: break-word;
+}
+
 .Footer {
   background: #243b49;
   flex: none;
