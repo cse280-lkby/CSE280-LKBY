@@ -7,6 +7,9 @@ import Div100vh from 'react-div-100vh'
 import './App.css';
 
 const TEST_ENDPOINT = '/sendMessage';
+const INITIAL_SUGGESTIONS = [
+  'Talk to My College Buddy'
+];
 
 async function sendMessageAndGetReply(session, text) {
   const reqData = {
@@ -30,12 +33,7 @@ async function sendMessageAndGetReply(session, text) {
 function App() {
   const [state, setState] = React.useState({
     session: null,
-    messages: [
-      {
-        type: 'system',
-        text: 'this is a test system message lol'
-      }
-    ],
+    messages: [],
     suggestions: [],
     isLoading: false,
   });
@@ -47,9 +45,7 @@ function App() {
         userID,
         sessionID: userID + '-' + (new Date()).toString()
       },
-      suggestions: [
-        'Hello'
-      ]
+      suggestions: INITIAL_SUGGESTIONS
     }));
   }
 
@@ -95,7 +91,7 @@ function App() {
           ...oldState.messages,
           ...newMessages
         ],
-        suggestions,
+        suggestions: finished ? INITIAL_SUGGESTIONS : suggestions,
         isLoading: false
       }));
     } catch (e) {
