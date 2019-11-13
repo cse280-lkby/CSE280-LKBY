@@ -12,7 +12,7 @@ const cors = require('cors');
 app.use(cors());
 
 // TODO save this somewhere, maybe reuse jovo filedb
-const userDataTable = {};
+let userDataTable = {};
 const sessionDataTable = {};
 
 async function handleMessage(userID, sessionID, message) {
@@ -69,6 +69,17 @@ app.post('/sendMessage', async (req, res) => {
     }
     const response = await handleMessage(userID, sessionID, message);
     res.send(response);
+});
+
+// Temporary function for dumping entire user data table
+app.get('/dump', async (_req, res) => {
+    res.send(JSON.stringify(userDataTable));
+});
+
+// Temporary function for setting entire user data table
+app.post('/dump', async (req, res) => {
+    userDataTable = req.body;
+    res.send('ok');
 });
 
 app.use(express.static('../../text-interface/build'));
