@@ -114,11 +114,13 @@ const SECTIONS = {
                         return errorResponse;
                     }
                     const value = smoke_or_vape[0].value;
-                    if (value !== 'smoke' && value !== 'vape') {
+                    if (value !== 'smoke' && value !== 'vape' && value !== 'both') {
                         console.error('Unknown value for smoke_or_vape: ' + value);
                         return errorResponse;
                     }
-
+                    if(value === 'both') {
+                        value = 'smoke'
+                    }
                     this.userData.smokeOrVape = value;
                 }
             },{
@@ -461,7 +463,14 @@ const SECTIONS = {
                                     return randomChoice([
                                         'Whenever cravings hit, take deep breaths, count to five, exhale, and say, '
                                             + '"N-O-P-E, Not One Puff Ever".',
-                                        'Tell yourself "this too shall pass" when your next craving happens.'
+                                        'Tell yourself "this too shall pass" when your next craving happens.',
+                                        'Taking a walk or a relaxing shower can help a lot with resisting your cravings.',
+                                        'Exercise helps keep your mind off your cravings.',
+                                        'One thing to do to keep you motivated is to imagine all the benefits in a future' +
+                                            'where you are smoke-free. You will save a bunch of money and feel healthier!',
+                                        'Finding some busy work to keep you distracted can help you resist cravings. For example, ' +
+                                            'try crossing things off of your to-do list.',
+                                        'Sometimes the best solution is to just get some rest. A nap can help you forget your cravings.'
                                     ]);
                                 case 'depression':
                                     return randomChoice([
@@ -528,7 +537,7 @@ const SECTIONS = {
                     if (outcome == null || outcome[0].confidence < .85) {
                         // Response was not understood properly. Redirect
                         // to a simple yes or no question 
-                        console.error('Did not understand quit_date_passed response');
+                        console.error('Outcome for quit_date_passed could not be parsed out');
                         return {
                             response: resp,
                             next: 'quit_date_passed_unclear_response'
@@ -849,13 +858,75 @@ const SECTIONS = {
                     if (witResponse == null || witResponse.entities == null) {
                         return errorResponse;
                     }
-                    const {reasons_for_smoking} = witResponse.entities;
-                    if (reasons_for_smoking == null) {
-                        return errorResponse;
+                    let response = ''
+                    const {no} = witResponse.entities;
+                    if (no != null) {
+                        response += 'That\'s okay! Think about it and we\'ll come back to this another time.'
+                    } else {
+                        const {reasons_for_smoking} = witResponse.entities;
+                        if (reasons_for_smoking == null) {
+                            return errorResponse;
+                        }
+                        this.userData.topTriggers = uniqueValues(reasons_for_smoking);
+                        const {top_triggers} = this.userData;
+                        if (top_triggers != null) {
+                            response += sentenceJoin(dedupe(top_triggers.map(reason => {
+                                switch (reason) {
+                                    case 'addiction':
+                                        return randomChoice([
+                                            'Whenever cravings hit, take deep breaths, count to five, exhale, and say, '
+                                                + '"N-O-P-E, Not One Puff Ever".',
+                                            'Tell yourself "this too shall pass" when your next craving happens.'
+                                        ]);
+                                    case 'depression':
+                                        return randomChoice([
+                                            'Sorry to hear that you are feeling down.',
+                                            'Sorry to hear that you are having such a hard time.',
+                                            'We are all insecure at some point. Life has it\'s ups and downs.',
+                                            'The path to happiness is not always quick or easy. Sometimes, you have to '
+                                                + 'slowly work towards it.'
+                                        ]);
+                                    case 'friends':
+                                        return randomChoice([
+                                            'See if you can avoid those friends who ' + this.userData.smokeOrVape + '.',
+                                            'Tell yourself "Not one puff ever. I will not accept any invitations '
+                                                + 'to ' + this.userData.smokeOrVape + ' with my friends."',
+                                            'If you\'re friends ' + this.userData.smokeOrVape + ', that doesn\'t mean '
+                                                + 'you have to. You can always say no to ' + (this.userData.smokeOrVape === 'vape' ? 'vaping' : 'smoking')
+                                                + '.'
+                                        ]);
+                                    case 'stress':
+                                        return randomChoice([
+                                            'Stressful situations may cause cravings, but you can overcome them.',
+                                            'Try to find other ways with dealing with your stress. Working out, '
+                                                + 'taking a walk, or hanging out with friends are some great examples.',
+                                            'Sometimes you have to accept that you won\'t get everything on your To-Do list done. '
+                                                + 'Managing your time to prioritize your most important tasks first can help with stress.'
+                                        ]);
+                                    case 'school':
+                                        return randomChoice([
+                                            'Stressful situations may cause cravings, but you can overcome them.',
+                                            'School can be a difficult place to avoid cravings. However, keeping true '
+                                                + 'to your commitment of not ' + (this.userData.smokeOrVape === 'vape' ? 'vaping' : 'smoking')
+                                                + ' is very important.'
+                                        ]);
+                                    case 'pleasure':
+                                        return randomChoice([
+                                            'While ' + (this.userData.smokeOrVape === 'vape' ? 'vaping' : 'smoking') + ' can feel nice in the '
+                                                + 'moment, it is important to remember all the negative consequences.',
+                                            'Remember, a moment of pleasure is not worth a lifetime of health problems.',
+                                            'Remember, a few moments of pleasure is not worth the hundreds of dollars you will '
+                                                + 'end up sinking into your habit.'
+                                        ]);
+                                    default:
+                                        console.error('Unhandled reason for smoking (top triggers section)! Reason is: ', reason);
+                                        return '';
+                                }
+                            }).filter(Boolean)), HALF_SEC_BREAK) + HALF_SEC_BREAK;
+                        }
                     }
-                    this.userData.topTriggers = uniqueValues(reasons_for_smoking);
 
-                    let response = randomChoice([
+                    response += randomChoice([
                         'Thank you for taking the time to talk to me today. Let\'s talk again soon.',
                         'It was great to talk to you today. Let\'s talk again soon.',
                         'That\'s all I have for now. Please talk to me again soon.'
