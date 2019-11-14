@@ -297,16 +297,44 @@ const SECTIONS = {
                             const gratitudeStr = gratitude[i].value;
                             if (gratitudeStr == "friend") {
                                 // inside of each of the possible matches, add to the returned string
-                                resp += 'It is so wonderful that there are people in this world who love you and support you all the time, isn\'t it? <break time="1s"/>';
+                                resp += 'It is so wonderful that there are people in this world who support you all the time, isn\'t it? You can always talk and share your worries with your friends. <break time="1s"/>';
                                 this.context.friend = "friend";
+                                return {response: resp};
                             }
                             else if (gratitudeStr == "life_style") {
-                                resp += 'It is so wonderful that you have time to do the things you enjoy. Simple activities like what you did today can greatly improve life quality! <break time="1s"/>';
+                                resp += 'Many people take those things for granted, it\'s great that you appreciate the things many others in the world cannot. <break time="1s"/>';
                                 this.context.life_style = "life style";
+                                return {response: resp};
                             }
                             else if (gratitudeStr == "no") {
                                 resp += 'I\'m sure there are great things happened to you but you just haven\'t noticed yet. Try to pay attention to even the smallest or simplest event, such as chat with a friend before class and have a good meal in a resturant.  <break time="1s"/>';
                                 this.context.no = "no";
+                                return {response: resp};
+                            }
+                            else if (gratitudeStr == "health") {
+                                resp += 'Your health is one of the most important things in the world. It\'s awesome that you realize the great things happening for your body. <break time="1s"/>';
+                                this.context.health = "health";
+                                return {response: resp};
+                            }
+                            else if (gratitudeStr == "family") {
+                                resp += 'No matter what obstacles you may face in life, your family is a constant that will always be there to help you through them. <break time="1s"/>';
+                                this.context.family = "family";
+                                return {response: resp};
+                            }
+                            else if (gratitudeStr == "pet") {
+                                resp += 'Aw, Pets! They\'re so cute It\'s so nice to have animals to calm you down and always love you back. <break time="1s"/>';
+                                this.context.pet = "pet";
+                                return {response: resp};
+                            }
+                            else if (gratitudeStr == "education") {
+                                resp += 'You are so lucky to have this opportunity to gain an education, it\'s amazing that you appreciate it too. Learning is a lifelong process! 1 <break time="1s"/>';
+                                this.context.education = "education";
+                                return {response: resp};
+                            }
+                            else if (gratitudeStr == "nature") {
+                                resp += 'Most people take nature for granted, but the beauty of the outdoors is never ending! <break time="1s"/>';
+                                this.context.nature = "nature";
+                                return {response: resp};
                             }
                             else {
                             }
@@ -354,23 +382,66 @@ const SECTIONS = {
                             const gratitudeStr = gratitude[i].value;
                             if (gratitudeStr == "friend") {
                                 // inside of each of the possible matches, add to the returned string
-                                resp += 'It is so wonderful that there are people in this world who love you and support you all the time, isn\'t it? <break time="1s"/>';
+                                resp += 'It is so wonderful that there are people in this world who support you all the time, isn\'t it? You can always talk and share your worries with your friends. <break time="1s"/>';
                                 resp += 'Don\'t you feel so much better knowing you have those great things in your life? <break time="1s"/>'
                                 + 'The next time you feel down <break time=".25s"/> I challenge you to think of these positives, or even new ones, '
                                 + 'to make you feel just a little bit better. <break time="1s"/>'
                                 this.context.friend = "friend";
+                                return {response: resp};
                             }
                             else if (gratitudeStr == "life_style") {
-                                resp += 'It is so wonderful that you have time to do the things you enjoy. Simple activities like what you did today can greatly improve life quality! <break time="1s"/>';
+                                resp += 'Many people take those things for granted, it\'s great that you appreciate the things many others in the world cannot. <break time="1s"/>';
                                 resp += 'Don\'t you feel so much better knowing you have those great things in your life? <break time="1s"/>'
                                 + 'The next time you feel down <break time=".25s"/> I challenge you to think of these positives, or even new ones, '
                                 + 'to make you feel just a little bit better. <break time="1s"/>'
                                 this.context.life_style = "life style";
+                                return {response: resp};
                             }
                             else if (gratitudeStr == "no") {
                                 resp += 'I\'m sure there are many more things happened to you but you just haven\'t noticed yet. Try to pay attention to even the smallest or simplest event, such as get in touch with someone you haven\'t talked for a while and watch an interesting Netflix show on your bed.  <break time="1s"/>';
                                 resp += 'Let\'s try this gratitude exercise on another day and see if you can name at least two things! <break time="1s"/>';
                                 this.context.no = "no";
+                                return {response: resp};
+                            }
+                            else if (gratitudeStr == "health") {
+                                resp += 'Your health is one of the most important things in the world. It\'s awesome that you realize the great things happening for your body. <break time="1s"/>';
+                                resp += 'Don\'t you feel so much better knowing you have those great things in your life? <break time="1s"/>'
+                                + 'The next time you feel down <break time=".25s"/> I challenge you to think of these positives, or even new ones, '
+                                + 'to make you feel just a little bit better. <break time="1s"/>'
+                                this.context.health = "health";
+                                return {response: resp};
+                            }
+                            else if (gratitudeStr == "family") {
+                                resp += 'No matter what obstacles you may face in life, your family is a constant that will always be there to help you through them. <break time="1s"/>';
+                                resp += 'Don\'t you feel so much better knowing you have those great things in your life? <break time="1s"/>'
+                                + 'The next time you feel down <break time=".25s"/> I challenge you to think of these positives, or even new ones, '
+                                + 'to make you feel just a little bit better. <break time="1s"/>'
+                                this.context.family = "family";
+                                return {response: resp};
+                            }
+                            else if (gratitudeStr == "pet") {
+                                resp += 'Aw, Pets! They\'re so cute It\'s so nice to have animals to calm you down and always love you back. <break time="1s"/>';
+                                resp += 'Don\'t you feel so much better knowing you have those great things in your life? <break time="1s"/>'
+                                + 'The next time you feel down <break time=".25s"/> I challenge you to think of these positives, or even new ones, '
+                                + 'to make you feel just a little bit better. <break time="1s"/>'
+                                this.context.pet = "pet";
+                                return {response: resp};
+                            }
+                            else if (gratitudeStr == "education") {
+                                resp += 'You are so lucky to have this opportunity to gain an education, it\'s amazing that you appreciate it too. Learning is a lifelong process! <break time="1s"/>';
+                                resp += 'Don\'t you feel so much better knowing you have those great things in your life? <break time="1s"/>'
+                                + 'The next time you feel down <break time=".25s"/> I challenge you to think of these positives, or even new ones, '
+                                + 'to make you feel just a little bit better. <break time="1s"/>'
+                                this.context.education = "education";
+                                return {response: resp};
+                            }
+                            else if (gratitudeStr == "nature") {
+                                resp += 'Most people take nature for granted, but the beauty of the outdoors is never ending! <break time="1s"/>';
+                                resp += 'Don\'t you feel so much better knowing you have those great things in your life? <break time="1s"/>'
+                                + 'The next time you feel down <break time=".25s"/> I challenge you to think of these positives, or even new ones, '
+                                + 'to make you feel just a little bit better. <break time="1s"/>'
+                                this.context.nature = "nature";
+                                return {response: resp};
                             }
                             else {
                             }
@@ -495,7 +566,8 @@ const SECTIONS = {
                     if(this.context.sleep != null) {response += this.context.sleep + ' ';}
                     return 'It was a pleasure speaking with you today. Thanks for sharing your current struggles with '
                         + response
-                        + '. Next time we can check in on how those are going for you.';
+                        + '. Next time we can check in on how those are going for you. <break time="1s"/>'
+                        + ' Please know that you can always talk to me, but the academic center is also a resource you can reach out to.';
                 },
                 type: SLOT_TYPES.OPEN_ENDED
             }
