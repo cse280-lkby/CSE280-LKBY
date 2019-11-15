@@ -1,9 +1,12 @@
 const SLOT_TYPES = require('./slot-types');
-
-// function used to get random responses each time through conversation
-function randomChoice(list) {
-    return list[Math.floor(Math.random() * list.length)];
-}
+const {
+    asDate,
+    breakForSec,
+    dedupe,
+    randomChoice,
+    sentenceJoin,
+    uniqueValues,
+} = require('./util');
 
 /*
  * Sections:
