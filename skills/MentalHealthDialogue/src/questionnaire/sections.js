@@ -127,7 +127,7 @@ const SECTIONS = {
                                 'Wow that\'s excellent! I\'m glad you\'re feeling ' + (this.context.currentMood) + '. Keep the good mood going, have a great rest of your day, and check back in soon!',
                                 'Yay! I love it when you feel ' + (this.context.currentMood) + '. Go ahead and have a great rest of your day, don’t forget to check back in soon!'                    
                             ]);
-                            return {response: resp, next: 'pos_ending'};
+                            return {response: resp, next: ''};
                         }
                     }
                 }
@@ -297,12 +297,15 @@ const SECTIONS = {
                     }
 
                     else {
-                        return 'ending';
+                        return {
+                            response: endMessage(this),
+                            next: ''
+                        };
                     }
                 } 
             },
         ],
-        next: 'ending'
+        next: ''
     },
     gratitude_exercise: {
         name: 'gratitude_exercise',
@@ -328,7 +331,7 @@ const SECTIONS = {
                 } 
             },
         ],
-        next: 'ending'
+        next: ''
     },
     gratitude_exercise_part_2: {
         name: 'gratitude_exercise_part_2',
@@ -528,12 +531,15 @@ const SECTIONS = {
                     }
 
                     else {
-                        return 'ending';
+                        return {
+                            response: endMessage(this),
+                            next: ''
+                        };
                     }
                 } 
             },
         ],
-        next: 'ending'
+        next: ''
     },
     stretching_exercise: {
         name: 'stretching_exercise',
@@ -557,13 +563,15 @@ const SECTIONS = {
 
                     else {
                         return {
-                            response: 'Okay that\'s alright, we can stretch it all out another time! <break time="1s"/>',
+                            response: 'Okay that\'s alright, we can stretch it all out another time! <break time="1s"/> '
+                                + endMessage(this),
+                            next: ''
                         };
                     }
                 } 
             },
         ],
-        next: 'ending'
+        next: ''
     },
     /*
     tempExam: {
@@ -662,43 +670,50 @@ const SECTIONS = {
     },
     */
 
-    ending: {
-        name: 'ending',
-        questions: [
-            {
-                name: 'first_top_trigger',
-                // TODO: Can this be customized to list *what the client likes about smoking*
-                prompt() { 
-                    var response = "";
-                    if(this.context.exams != null) {response += this.context.exams + ' ';}
-                    if(this.context.courseMaterials != null) {response += this.context.courseMaterials + ' ';}
-                    if(this.context.timeMan != null) {response += this.context.timeMan + ' ';}
-                    if(this.context.sleep != null) {response += this.context.sleep + ' ';}
-                    return 'It was a pleasure speaking with you today. Thanks for sharing your current struggles with '
-                        + response
-                        + '. Next time we can check in on how those are going for you. <break time="1s"/>'
-                        + ' Please know that you can always talk to me, but the academic center is also a resource you can reach out to.';
-                },
-                type: SLOT_TYPES.OPEN_ENDED
-            }
-        ],
-        next: '' // TODO
-    },
-    pos_ending: {
-        name: 'pos_ending',
-        questions: [
-            {
-                name: 'pos_ending',
-                // TODO: Can this be customized to list *what the client likes about smoking*
-                prompt() { 
-                    return '';
-                },
-                type: SLOT_TYPES.OPEN_ENDED
-            }
-        ],
-        next: '' // TODO
-    },
+    // Please return endMessage(this) as response instead
+    // ending: {
+    //     name: 'ending',
+    //     questions: [
+    //         {
+    //             name: 'first_top_trigger',
+    //             // TODO: Can this be customized to list *what the client likes about smoking*
+    //             prompt() { 
+                    
+    //             },
+    //             type: SLOT_TYPES.OPEN_ENDED
+    //         }
+    //     ],
+    //     next: '' // TODO
+    // },
+    // pos_ending: {
+    //     name: 'pos_ending',
+    //     questions: [
+    //         {
+    //             name: 'pos_ending',
+    //             // TODO: Can this be customized to list *what the client likes about smoking*
+    //             prompt() { 
+    //                 return '';
+    //             },
+    //             type: SLOT_TYPES.OPEN_ENDED
+    //         }
+    //     ],
+    //     next: '' // TODO
+    // },
     __version__: '1',
 };
+
+function endMessage(data) {
+    if (this !== data) return endMessage.call(data, data);
+
+    let response = "";
+    if(this.context.exams != null) {response += this.context.exams + ' ';}
+    if(this.context.courseMaterials != null) {response += this.context.courseMaterials + ' ';}
+    if(this.context.timeMan != null) {response += this.context.timeMan + ' ';}
+    if(this.context.sleep != null) {response += this.context.sleep + ' ';}
+    return 'It was a pleasure speaking with you today. Thanks for sharing your current struggles with '
+        + response
+        + '. Next time we can check in on how those are going for you. <break time="1s"/>'
+        + ' Please know that you can always talk to me, but the academic center is also a resource you can reach out to.';
+}
 
 module.exports = SECTIONS;
