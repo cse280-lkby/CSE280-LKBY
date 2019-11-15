@@ -588,7 +588,11 @@ const SECTIONS = {
         questions: [
             {
                 name: 'quit_successfully',
-                prompt: 'So did you end up ' + (this.userData.smokeOrVape === 'vape' ? 'vaping' : 'smoking') + ' again?',
+                prompt(){
+                    return 'So did you end up '
+                        + (this.userData.smokeOrVape === 'vape' ? 'vaping' : 'smoking')
+                        + ' again?';
+                },
                 type: SLOT_TYPES.OPEN_ENDED,
                 suggestions: ['Yes', 'No'],
                 useWit: true,
@@ -607,7 +611,7 @@ const SECTIONS = {
                     }
 
                     if (yes_or_no[0].value === 'yes') {
-                        const resp = randomChoice([
+                        let resp = randomChoice([
                             'Don\'t worry. Many have to quit several times before they succeed.',
                             'Don\'t feel bad. Smoking is an addiction so be brave to tackle it.',
                             'Don\'t be discouraged. Things happen and as long as you continue to '
@@ -621,8 +625,8 @@ const SECTIONS = {
                         }
                     } else {
                         return {
-                            response: 'Okay. Good luck on your journey. I will always be here for you if you need '
-                                + 'to talk.',
+                            response: 'Awesome! Good luck on the rest of your journey. '
+                                + 'I will always be here for you if you need to talk.'
                         }
                     }
                 }
@@ -873,14 +877,18 @@ const SECTIONS = {
                     if (no != null) {
                         response += 'That\'s okay! Think about it and we\'ll come back to this another time.'
                     } else {
-                        const {reasons_for_smoking} = witResponse.entities;
-                        if (reasons_for_smoking == null) {
+                        const {reasons_for_smoking, reasons_for_quitting} = witResponse.entities;
+                        if (reasons_for_smoking == null && reasons_for_quitting == null) {
                             return errorResponse;
                         }
-                        this.userData.top_triggers = uniqueValues(reasons_for_smoking);
-                        const {top_triggers} = this.userData;
-                        response += sentenceJoin(dedupe(top_triggers.map(reason => {
+                        this.userData.topTriggers = dedupe([
+                            ...uniqueValues(reasons_for_smoking),
+                            ...uniqueValues(reasons_for_quitting)
+                        ]);
+                        const {topTriggers} = this.userData;
+                        response += sentenceJoin(dedupe(topTriggers.map(reason => {
                             switch (reason) {
+                                case 'sick':
                                 case 'addiction':
                                     return randomChoice([
                                         'Whenever cravings hit, take deep breaths, count to five, exhale, and say, '
@@ -895,6 +903,7 @@ const SECTIONS = {
                                         'The path to happiness is not always quick or easy. Sometimes, you have to '
                                             + 'slowly work towards it.'
                                     ]);
+                                case 'others':
                                 case 'friends':
                                     return randomChoice([
                                         'See if you can avoid those friends who ' + this.userData.smokeOrVape + '.',
@@ -928,7 +937,7 @@ const SECTIONS = {
                                             + 'end up sinking into your habit.'
                                     ]);
                                 default:
-                                    console.error('Unhandled reason for smoking (top triggers section)! Reason is: ', reason);
+                                    console.error('Unhandled reason for smoking or quitting (top triggers section)! Reason is: ', reason);
                                     return '';
                             }
                         }).filter(Boolean)), HALF_SEC_BREAK) + HALF_SEC_BREAK;
