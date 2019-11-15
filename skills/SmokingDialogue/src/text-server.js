@@ -15,6 +15,10 @@ app.use(cors());
 let userDataTable = {};
 const sessionDataTable = {};
 
+function tempGraceCopy() {
+    return JSON.parse(JSON.stringify(require('./temp-grace')));
+}
+
 async function handleMessage(userID, sessionID, message) {
     if (!userDataTable[userID]) {
         userDataTable[userID] = {};
@@ -43,7 +47,10 @@ async function handleMessage(userID, sessionID, message) {
         sessionDataTable[sessionID] = {};
     };
 
-    const userData = userDataTable[userID];
+    // Temporarily have user "grace" locked to a past quit date
+    const userData = userID === 'grace'
+        ? tempGraceCopy()
+        : userDataTable[userID];
     const sessionData = sessionDataTable[sessionID];
     await DialogueFramework.handle({ask, getSlot, tell, userData, sessionData});
     return response;
