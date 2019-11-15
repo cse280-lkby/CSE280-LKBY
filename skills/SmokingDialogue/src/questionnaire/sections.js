@@ -862,6 +862,7 @@ const SECTIONS = {
                 // TODO: Can this be customized to list *what the client likes about smoking*
                 prompt: 'Let\'s do some planning for the situations where you usually smoke. ' + 
                 'What are your top triggers? If you don\'t have any, that\'s fine too!',
+                suggestions: ['Friends who smoke', 'School', 'Anxiety', 'Cravings'],
                 type: SLOT_TYPES.OPEN_ENDED,
                 useWit: true,
                 onResponse(input, witResponse) {
