@@ -138,7 +138,8 @@ const SECTIONS = {
             {
                 name: 'negative',
                 prompt(){ 
-                    return 'I\'m sorry you feel '+ (this.context.currentMood) +'. Can you tell me a little bit about what\'s going on?';
+                    //return 'I\'m sorry you feel '+ (this.context.currentMood) +'. Can you tell me a little bit about what\'s going on?';
+                    return 'I\'m sorry you feel like that. Can you tell me a little bit about what\'s going on?';
                 },
                 type: SLOT_TYPES.OPEN_ENDED,
                 useWit: true,
@@ -162,7 +163,7 @@ const SECTIONS = {
 
                                 resp += randomChoice([
                                     'Ah, Exams. Even though exams seem so important, your entire future doesn\'t depend on them. Don\'t give a test the power to define you! <break time="1s"/>',
-                                    'I remember the first time I took an exam in college, but I did survive! So, you will too! Just try your best and you\'ll be happy.'                    
+                                    'I remember the first time I took an exam in college, I was incredibly nervous, but I did survive! So, you will too! Just try your best and you\'ll be happy.'                    
                                 ]);
                                 this.context.exams = "exams";
                             }
@@ -190,6 +191,37 @@ const SECTIONS = {
                                     'Something to help you sleep better at night is to have a buffer zone: take 15 minutes befor bedtime to maybe light a candle or take a bath to relax yourself'                                
                                 ]);
                                 this.context.sleep = "sleeping";
+                            }
+                            else if (issueStr == "career") {
+                                resp += randomChoice([
+                                    'Careers take time! Everyone\'s process takes a different amount of time. My advice to you is to be patient and take advantage of all the awesome opportunities' 
+                                    + ' that the career center offers.  <break time="1s"/>'
+                                ]);
+                                this.context.career = "career";
+                            }
+                            else if (issueStr == "inferior") {
+                                resp += randomChoice([
+                                    'As Eleanor Roosevelt once said, No one can make you feel inferior without your consent. Believe in yourself, you\'re incredible! I mean look at you, you\'re at Lehigh University!  <break time="1s"/>',
+                                    'Something I tell myself when I\'m feeling intimidated by others or not as confident is: <break time="0.5s"/> why not me? Why wouldn\'t I be the best. ',
+                                    'Something that we often forget is that people are just people. The person or people that are making you feel lesser are the same as you, they have faults, fears, and insecurities too!'
+
+                                ]);
+                                this.context.inferior = "inferior";
+                            }
+                            else if (issueStr == "loneliness") {
+                                resp += randomChoice([
+                                    'Remember, loneliness is not a fact, it\'s just a feeling. The healthiest thing you can do to combat this feeling is to reach out and cultivate some friendships.   <break time="1s"/>',
+                                    'If your attempts at finding friends seem like a dead end, don\'t give up, pursue other options. There are people out there looking for you to be friends with too! '
+
+                                ]);
+                                this.context.loneliness = "loneliness";
+                            }
+                            else if (issueStr == "partner_conflict") {
+                                resp += randomChoice([
+                                    'Ahh, partner work. That\'s never usually a conflict free time. Knowing that the situation isn\'t ideal, be sure to plan ahead and allow time for inefficiencies. <break time="1s"/>',
+                                    'Communication is key: if you feel like you will be well received, talk it out with your partner. If that isn\'t an option, reach out to the professor, they are there to help with problems just like this! '
+                                ]);
+                                this.context.partner_conflict = "partner_conflict";
                             }
                             else {
                             }
@@ -246,14 +278,35 @@ const SECTIONS = {
                 } 
             },
         ],
-        next: 'gratitude_exercise'
+        next: 'check_in_post_breathing'
+    },
+    check_in_post_breathing: {
+        name: 'check_in_post_breathing',
+        questions: [
+            {
+                name: 'check_in_post_breathing',
+                prompt: 'Would you like to continue this session with another activity?',
+                type: SLOT_TYPES.YES_NO,
+                onResponse(input) {
+                    if(input==='yes'){
+                        // if they want to try the activity, go to the actual activity
+                        return 'gratitude_exercise';
+                    }
+
+                    else {
+                        return 'ending';
+                    }
+                } 
+            },
+        ],
+        next: 'ending'
     },
     gratitude_exercise: {
         name: 'gratitude_exercise',
         questions: [
             {
                 name: 'gratitude_exercise',
-                prompt: 'Another activity I find that helps me deal with stress is thinking about the people or things I am grateful for. Would you like to try the gratitude exercise?',
+                prompt: 'An activity I find that helps me deal with stress is thinking about the people or things I am grateful for. Would you like to try the gratitude exercise?',
                 type: SLOT_TYPES.YES_NO,
                 onResponse(input) {
                     if(input==='yes'){
@@ -262,9 +315,12 @@ const SECTIONS = {
                     }
 
                     else {
+                        return 'stretching_exercise';
+                        /*
                         return {
                             response: 'That\'s alright, we\'ll give that a try another day! <break time="1s"/>',
                         };
+                        */
                     }
                 } 
             },
@@ -327,7 +383,7 @@ const SECTIONS = {
                                 return {response: resp};
                             }
                             else if (gratitudeStr == "education") {
-                                resp += 'You are so lucky to have this opportunity to gain an education, it\'s amazing that you appreciate it too. Learning is a lifelong process! 1 <break time="1s"/>';
+                                resp += 'You are so lucky to have this opportunity to gain an education, it\'s amazing that you appreciate it too. Learning is a lifelong process! <break time="1s"/>';
                                 this.context.education = "education";
                                 return {response: resp};
                             }
@@ -451,6 +507,57 @@ const SECTIONS = {
                         return {response: resp};
                     }
                 }
+            },
+        ],
+        next: 'check_in_post_gratitude'
+    },
+    check_in_post_gratitude: {
+        name: 'check_in_post_gratitude',
+        questions: [
+            {
+                name: 'check_in_post_gratitude',
+                prompt: 'Would you like to continue this session with another activity?',
+                type: SLOT_TYPES.YES_NO,
+                onResponse(input) {
+                    if(input==='yes'){
+                        // if they want to try the activity, go to the actual activity
+                        return 'stretching_exercise';
+                    }
+
+                    else {
+                        return 'ending';
+                    }
+                } 
+            },
+        ],
+        next: 'ending'
+    },
+    stretching_exercise: {
+        name: 'stretching_exercise',
+        questions: [
+            {
+                name: 'stretching_exercise',
+                prompt: 'A great way to relax and loosen up is stretching. Would you like to do some quick guided stretching?',
+                type: SLOT_TYPES.YES_NO,
+                onResponse(input) {
+                    if(input==='yes'){
+                        return {
+                            response: 'Splendid! <break time="0.5s"/> The purpose of this exercise is to clear your mind by focusing on your body. You can do this exercise just sitting in your chair or laying down if you\'d like. <break time="0.5s"/>'
+                        + ' Let\'s start by reaching your arms up. <break time="0.5s"/> Feel your muscles in your shoulder and along your ribs stretch. <break time="0.5s"/> 3 more seconds   <break time="3s"/> .'
+                        + ' Now let\'s lower your arms outward so that they are now horizontal. Really extend out to the side and take deep breaths. Keep this position for 5 more seconds. <break time="5s"/> .'
+                        + ' And now let\'s repeat that one more time. Go ahead and raise your arms back up so they are overhead again. Let\'s go for another 5 seconds. <break time="0.5s"/> 2 <break time="0.5s"/> 3 <break time="0.5s"/> 4 <break time="0.5s"/> 5 <break time="0.5s"/> .'
+                        + ' And now lower your arms one final time. Hold them out to the side for 5 more seconds.  <break time="0.5s"/> 2 <break time="0.5s"/> 3 <break time="0.5s"/> 4 <break time="0.5s"/> 5.'
+                        + ' <break time="1s"/> I hope this left you feeling a little more relaxed and loose. <break time="0.5s"/> I sure wish I could stretch like that. <break time="0.5s"/> '
+                        + ' Whenver you feel tense, use these simple stretches to loosen your body and clear your mind. <break time="0.5s"/>',
+                        };
+                    }
+
+                    else {
+                        return {
+                            response: 'Okay that\'s alright, we can stretch it all out another time! <break time="1s"/>',
+                        };
+                    }
+                } 
             },
         ],
         next: 'ending'
