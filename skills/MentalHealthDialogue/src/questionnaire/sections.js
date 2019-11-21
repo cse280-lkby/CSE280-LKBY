@@ -1,9 +1,12 @@
 const SLOT_TYPES = require('./slot-types');
-
-// function used to get random responses each time through conversation
-function randomChoice(list) {
-    return list[Math.floor(Math.random() * list.length)];
-}
+const {
+    asDate,
+    breakForSec,
+    dedupe,
+    randomChoice,
+    sentenceJoin,
+    uniqueValues,
+} = require('./util');
 
 /*
  * Sections:
@@ -128,7 +131,7 @@ const SECTIONS = {
                                 'Wow that\'s excellent! I\'m glad you\'re feeling ' + (this.context.currentMood) + '. Keep the good mood going, have a great rest of your day, and check back in soon!',
                                 'Yay! I love it when you feel ' + (this.context.currentMood) + '. Go ahead and have a great rest of your day, don’t forget to check back in soon!'                    
                             ]);
-                            return {response: resp, next: 'pos_ending'};
+                            return {response: resp, next: ''};
                         }
                         else {
                             return { response: 'Well, I\'m here to make you feel better today, so let\'s get started. <break time="0.5s"/>', next: 'tempNegative' };
@@ -306,12 +309,15 @@ const SECTIONS = {
                     }
 
                     else {
-                        return 'ending';
+                        return {
+                            response: endMessage(this),
+                            next: ''
+                        };
                     }
                 } 
             },
         ],
-        next: 'ending'
+        next: ''
     },
     gratitude_exercise: {
         name: 'gratitude_exercise',
@@ -337,7 +343,7 @@ const SECTIONS = {
                 } 
             },
         ],
-        next: 'ending'
+        next: ''
     },
     gratitude_exercise_part_2: {
         name: 'gratitude_exercise_part_2',
@@ -541,12 +547,15 @@ const SECTIONS = {
                     }
 
                     else {
-                        return 'ending';
+                        return {
+                            response: endMessage(this),
+                            next: ''
+                        };
                     }
                 } 
             },
         ],
-        next: 'ending'
+        next: ''
     },
     stretching_exercise: {
         name: 'stretching_exercise',
@@ -564,20 +573,22 @@ const SECTIONS = {
                         + ' And now let\'s repeat that one more time. Go ahead and raise your arms back up so they are overhead again. Let\'s go for another 5 seconds. <break time="0.5s"/> 2 <break time="0.5s"/> 3 <break time="0.5s"/> 4 <break time="0.5s"/> 5 <break time="0.5s"/> .'
                         + ' And now lower your arms one final time. Hold them out to the side for 5 more seconds.  <break time="0.5s"/> 2 <break time="0.5s"/> 3 <break time="0.5s"/> 4 <break time="0.5s"/> 5.'
                         + ' <break time="1s"/> I hope this left you feeling a little more relaxed and loose. <break time="0.5s"/> I sure wish I could stretch like that. <break time="0.5s"/> '
-                        + ' Whenver you feel tense, use these simple stretches to loosen your body and clear your mind. <break time="0.5s"/>',
+                        + ' Whenver you feel tense, use these simple stretches to loosen your body and clear your mind. <break time="0.5s"/>' + endMessage(this), next: ''
                         };
                     }
 
                     else {
                         return {
-                            response: 'Okay that\'s alright, we can stretch it all out another time! <break time="1s"/>',
+                            response: 'Okay that\'s alright, we can stretch it all out another time! <break time="1s"/> '
+                                + endMessage(this),
+                            next: ''
                         };
                         
                     }
                 } 
             },
         ],
-        next: 'ending'
+        next: ''
     },
     ending: {
         name: 'ending',
@@ -615,7 +626,147 @@ const SECTIONS = {
         ],
         next: '' // TODO
     },
+    /*
+    tempExam: {
+        name: 'tempExam',
+        questions: [
+            {
+                name: 'exam',
+                prompt: 'Ah, Exams. Even though exams seem so important, your entire future doesn\'t depend on them. Don\'t give a test the power to define you!',
+                
+                type: SLOT_TYPES.OPEN_ENDED,
+                onResponse(input) {
+                    if (this.context.courseMaterials == "course materials") {
+                        return 'tempCourseMaterials'
+                    }
+                    else if (this.context.timeMan == "time managment") {
+                        return 'tempTimeManagement';
+                    }
+                    else if (this.context.sleep == "sleeping") {
+                        return 'tempSleep';
+                    }
+                    else {
+                        return 'ending';              
+
+                    }
+                }
+            },
+        ],
+        next: null
+    },
+    */
+   /*
+    tempCourseMaterials: {
+        name: 'tempCourseMaterials',
+        questions: [
+            {
+                name: 'course_materials',
+                prompt: 'I never heard anyone say college is easy. Try to attend office hours and finding a group of classmates to study with.',
+                //prompt: 'Not understanding content is a common issue, the courses are supposed to be challenging. '
+                //+ 'A few things that students find helpful when they don\'t understand material, are finding a tutor, '
+                //+ 'attending office hours, and finding a group of classmates to study with.',
+                type: SLOT_TYPES.OPEN_ENDED,
+                onResponse(input) {
+                    if (this.context.timeMan == "time managment") {
+                        return 'tempTimeManagement';
+                    }
+                    else if (this.context.sleep == "sleeping") {
+                        return 'tempSleep';
+                    }
+                    else {
+                        return 'ending';              
+                    }
+                }
+            },
+        ],
+        next: null
+    },
+    */
+   /*
+    tempTimeManagement: {
+        name: 'tempTimeManagement',
+        questions: [
+            {
+                name: 'time_management',
+                prompt: 'Don\'t you wish there was more time in a day? That probably won\'t happen. '
+                + ' Instead of putting things off until later and feeling guilty about it, try to start your work now. ',
+                type: SLOT_TYPES.OPEN_ENDED,
+                onResponse(input) {
+                    if (this.context.sleep == "sleeping") {
+                        return 'tempSleep';
+                    }
+                    else {
+                        //return 'check_in' 
+                        return 'ending';       
+                    }       
+                }
+            },
+        ],
+        next: null
+    },
+    */
+    /*
+    tempSleep: {
+        name: 'tempSleep',
+        questions: [
+            {
+                name: 'sleep',
+                prompt: 'I know that sleep is super important to me too. Before bed, try to relax and imagine you are in your happy place, whether that\'s a beach, a hotel, a spa, or even F M L.',
+                type: SLOT_TYPES.OPEN_ENDED,
+                onResponse(input) {
+                    //return 'check_in' 
+                    return 'ending'     ;              
+                }
+            },
+        ],
+        next: null
+    },
+    */
+
+    // Please return endMessage(this) as response instead
+    // ending: {
+    //     name: 'ending',
+    //     questions: [
+    //         {
+    //             name: 'first_top_trigger',
+    //             // TODO: Can this be customized to list *what the client likes about smoking*
+    //             prompt() { 
+                    
+    //             },
+    //             type: SLOT_TYPES.OPEN_ENDED
+    //         }
+    //     ],
+    //     next: '' // TODO
+    // },
+    // pos_ending: {
+    //     name: 'pos_ending',
+    //     questions: [
+    //         {
+    //             name: 'pos_ending',
+    //             // TODO: Can this be customized to list *what the client likes about smoking*
+    //             prompt() { 
+    //                 return '';
+    //             },
+    //             type: SLOT_TYPES.OPEN_ENDED
+    //         }
+    //     ],
+    //     next: '' // TODO
+    // },
     __version__: '1',
 };
+
+function endMessage(data) {
+    if (this !== data) return endMessage.call(data, data);
+
+    let response = "";
+    if(this.context.exams != null) {response += this.context.exams + ' ';}
+    if(this.context.courseMaterials != null) {response += this.context.courseMaterials + ' ';}
+    if(this.context.timeMan != null) {response += this.context.timeMan + ' ';}
+    if(this.context.sleep != null) {response += this.context.sleep + ' ';}
+    return 'It was a pleasure speaking with you today. Thanks for sharing your current struggles with '
+        + response
+        + '. Next time we can check in on how those are going for you. <break time="1s"/>'
+        + ' Please know that you can always talk to me, but the academic center is also a resource you can reach out to.';
+}
 
 module.exports = SECTIONS;

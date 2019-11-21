@@ -27,7 +27,6 @@ async function handleMessage(userID, sessionID, message) {
         sessionDataTable[sessionID] = {};
     }
 
-    // TODO implement suggestions, indicate end of conversation?
     const response = {
         finished: false,
         message: null,
@@ -47,10 +46,7 @@ async function handleMessage(userID, sessionID, message) {
         sessionDataTable[sessionID] = {};
     };
 
-    // Temporarily have user "grace" locked to a past quit date
-    const userData = userID === 'grace'
-        ? tempGraceCopy()
-        : userDataTable[userID];
+    const userData = userDataTable[userID];
     const sessionData = sessionDataTable[sessionID];
     await DialogueFramework.handle({ask, getSlot, tell, userData, sessionData});
     return response;
