@@ -100,8 +100,8 @@ const SECTIONS = {
                 //prompt: 'Hey,' + this.context.name + ' how are you feeling today?',
                 type: SLOT_TYPES.OPEN_ENDED,
                 useWit: true,
-                onResponse(input, witResponse) {
-                    const errorResponse = { response: 'Sorry, I didn\'t understand that.', next: 'check_in' };
+                onResponse(input, witResponse) {                
+                    const errorResponse = { response: 'Well, I\'m here to make you feel better today, so let\'s get started. <break time="0.5s"/>', next: 'tempNegative' };
                     let resp = '';
                     if (witResponse != null) {
                         console.log('Got response from Wit API!', JSON.stringify(witResponse));
@@ -115,9 +115,13 @@ const SECTIONS = {
 
                         const moodStr = mood[0].value;
                         if (moodStr == "negative") {
-                            return 'tempNegative';
+                            resp += 'I\'m sorry you feel like that.'
+                            return {response: resp, next: 'tempNegative'};
+                            // add multiple responses to the negative catch
+                            // then inside the tempNegative section, just have "Can you tell me a little more about what\'s going on?"
+                            //return 'tempNegative';
                         }
-                        else {
+                        else if (moodStr == "positive") {
                             resp += randomChoice([
                                 'That\'s great that you\'re feeling '+ (this.context.currentMood) + ', have a nice rest of your day. Be sure to check back in tomorrow!',
                                 'That\'s awesome, I\'m glad you\'re feeling ' + (this.context.currentMood) + ', keep that up and check back in soon!',
@@ -126,6 +130,10 @@ const SECTIONS = {
                             ]);
                             return {response: resp, next: 'pos_ending'};
                         }
+                        else {
+                            return { response: 'Well, I\'m here to make you feel better today, so let\'s get started. <break time="0.5s"/>', next: 'tempNegative' };
+                        }
+
                     }
                 }
             },
@@ -139,7 +147,9 @@ const SECTIONS = {
                 name: 'negative',
                 prompt(){ 
                     //return 'I\'m sorry you feel '+ (this.context.currentMood) +'. Can you tell me a little bit about what\'s going on?';
-                    return 'I\'m sorry you feel like that. Can you tell me a little bit about what\'s going on?';
+                    //return 'I\'m sorry you feel like that. Can you tell me a little bit about what\'s going on?';
+                    return 'Can you tell me a little bit about what\'s going on?';
+
                 },
                 type: SLOT_TYPES.OPEN_ENDED,
                 useWit: true,
@@ -147,7 +157,8 @@ const SECTIONS = {
                     console.log('context is ', this.context.currentMood);
                     if (witResponse != null) {
                         console.log('Got response from Wit API!', JSON.stringify(witResponse));
-                        const errorResponse = { response: 'Sorry, I didn\'t understand that.', next: 'tempNegative' };
+                        // have a generic response if none of the categories below are it, then move to breathing exercise
+                        const errorResponse = { response: 'I appreciate you sharing that with me, and I can see how it could bring you down. Let me try to take your mind off of this.', next: 'breathing_exercise' };
                         const {issues} = witResponse.entities;
                         if (issues == null) {
                             return errorResponse;
@@ -224,6 +235,7 @@ const SECTIONS = {
                                 this.context.partner_conflict = "partner_conflict";
                             }
                             else {
+                                resp += 'I appreciate you sharing that with me, and I can see how it could bring you down. Let me try to take your mind off of this.';
                             }
                         }
                         // return the response, jump to another question
@@ -306,7 +318,7 @@ const SECTIONS = {
         questions: [
             {
                 name: 'gratitude_exercise',
-                prompt: 'An activity I find that helps me deal with stress is thinking about the people or things I am grateful for. Would you like to try the gratitude exercise?',
+                prompt: 'An activity I find that helps me deal with stress is thinking about the people or things I\'m grateful for. Would you like to try the gratitude exercise?',
                 type: SLOT_TYPES.YES_NO,
                 onResponse(input) {
                     if(input==='yes'){
@@ -340,7 +352,7 @@ const SECTIONS = {
                 onResponse(input, witResponse) {
                     if (witResponse != null) {
                         console.log('Got response from Wit API!', JSON.stringify(witResponse));
-                        const errorResponse = { response: 'Sorry, I didn\'t understand that.', next: 'gratitude_exercise_part_2' };
+                        const errorResponse = { response: 'A lot of people take that for granted. Being able to appreciate even the smallest things in your life can really improve your general level of happiness.', next: 'gratitude_exercise_part_2_secondQuestion' };
                         const {gratitude} = witResponse.entities;
                         if (gratitude == null) {
                             return errorResponse;
@@ -393,6 +405,7 @@ const SECTIONS = {
                                 return {response: resp};
                             }
                             else {
+                                resp += 'A lot of people take that for granted. Being able to appreciate even the smallest things in your life can really improve your general level of happiness.';
                             }
                         }
 
@@ -425,7 +438,9 @@ const SECTIONS = {
                 onResponse(input, witResponse) {
                     if (witResponse != null) {
                         console.log('Got response from Wit API!', JSON.stringify(witResponse));
-                        const errorResponse = { response: 'Sorry, I didn\'t understand that.', next: 'gratitude_exercise_part_2_secondQuestion' };
+                        const errorResponse = { response: 'Don\'t you feel so much better knowing you have those great things in your life? <break time="1s"/>'
+                        + 'The next time you feel down <break time=".25s"/> I challenge you to think of these positives, or even new ones, '
+                        + 'to make you feel just a little bit better. <break time="1s"/>', next: 'check_in_post_gratitude' };
                         const {gratitude} = witResponse.entities;
                         if (gratitude == null) {
                             return errorResponse;
@@ -500,6 +515,7 @@ const SECTIONS = {
                                 return {response: resp};
                             }
                             else {
+                                resp += 'A lot of people take that for granted. Being able to appreciate even the smallest things in your life can really improve your general level of happiness.';
                             }
                         }
 
@@ -556,109 +572,13 @@ const SECTIONS = {
                         return {
                             response: 'Okay that\'s alright, we can stretch it all out another time! <break time="1s"/>',
                         };
+                        
                     }
                 } 
             },
         ],
         next: 'ending'
     },
-    /*
-    tempExam: {
-        name: 'tempExam',
-        questions: [
-            {
-                name: 'exam',
-                prompt: 'Ah, Exams. Even though exams seem so important, your entire future doesn\'t depend on them. Don\'t give a test the power to define you!',
-                
-                type: SLOT_TYPES.OPEN_ENDED,
-                onResponse(input) {
-                    if (this.context.courseMaterials == "course materials") {
-                        return 'tempCourseMaterials'
-                    }
-                    else if (this.context.timeMan == "time managment") {
-                        return 'tempTimeManagement';
-                    }
-                    else if (this.context.sleep == "sleeping") {
-                        return 'tempSleep';
-                    }
-                    else {
-                        return 'ending';              
-
-                    }
-                }
-            },
-        ],
-        next: null
-    },
-    */
-   /*
-    tempCourseMaterials: {
-        name: 'tempCourseMaterials',
-        questions: [
-            {
-                name: 'course_materials',
-                prompt: 'I never heard anyone say college is easy. Try to attend office hours and finding a group of classmates to study with.',
-                //prompt: 'Not understanding content is a common issue, the courses are supposed to be challenging. '
-                //+ 'A few things that students find helpful when they don\'t understand material, are finding a tutor, '
-                //+ 'attending office hours, and finding a group of classmates to study with.',
-                type: SLOT_TYPES.OPEN_ENDED,
-                onResponse(input) {
-                    if (this.context.timeMan == "time managment") {
-                        return 'tempTimeManagement';
-                    }
-                    else if (this.context.sleep == "sleeping") {
-                        return 'tempSleep';
-                    }
-                    else {
-                        return 'ending';              
-                    }
-                }
-            },
-        ],
-        next: null
-    },
-    */
-   /*
-    tempTimeManagement: {
-        name: 'tempTimeManagement',
-        questions: [
-            {
-                name: 'time_management',
-                prompt: 'Don\'t you wish there was more time in a day? That probably won\'t happen. '
-                + ' Instead of putting things off until later and feeling guilty about it, try to start your work now. ',
-                type: SLOT_TYPES.OPEN_ENDED,
-                onResponse(input) {
-                    if (this.context.sleep == "sleeping") {
-                        return 'tempSleep';
-                    }
-                    else {
-                        //return 'check_in' 
-                        return 'ending';       
-                    }       
-                }
-            },
-        ],
-        next: null
-    },
-    */
-    /*
-    tempSleep: {
-        name: 'tempSleep',
-        questions: [
-            {
-                name: 'sleep',
-                prompt: 'I know that sleep is super important to me too. Before bed, try to relax and imagine you are in your happy place, whether that\'s a beach, a hotel, a spa, or even F M L.',
-                type: SLOT_TYPES.OPEN_ENDED,
-                onResponse(input) {
-                    //return 'check_in' 
-                    return 'ending'     ;              
-                }
-            },
-        ],
-        next: null
-    },
-    */
-
     ending: {
         name: 'ending',
         questions: [
@@ -671,10 +591,10 @@ const SECTIONS = {
                     if(this.context.courseMaterials != null) {response += this.context.courseMaterials + ' ';}
                     if(this.context.timeMan != null) {response += this.context.timeMan + ' ';}
                     if(this.context.sleep != null) {response += this.context.sleep + ' ';}
-                    return 'It was a pleasure speaking with you today. Thanks for sharing your current struggles with '
-                        + response
+                    return 'It was a pleasure speaking with you today. Thanks for sharing your current struggles with me. <break time="0.5s"/>'
                         + '. Next time we can check in on how those are going for you. <break time="1s"/>'
                         + ' Please know that you can always talk to me, but the academic center is also a resource you can reach out to.';
+                        
                 },
                 type: SLOT_TYPES.OPEN_ENDED
             }
