@@ -64,17 +64,17 @@ const SECTIONS = {
             {
                 name: 'moreInfo',
                 prompt() { 
-                    return 'Hey, '
+                    return 'Hey '
                         + (this.userData.name)
-                        + ' Because this is the first time we are meeting, would you like to see more information about how I work?';
+                        + '<break time="0.5s"/> because this is the first time we are meeting, would you like to see more information about how I work?';
                 },
                  type: SLOT_TYPES.YES_NO,
                  useWit: false,
                  onResponse(input, witResponse) {
                     if(input==='yes'){
                         return {
-                            response: 'I\'m glad that you want to learn more. Essentially every time you want to talk to me, I\'ll ask you how you are feeling and try to make you feel better. '
-                            + 'For example, if you said you are feeling stressed, I could help you put things into perspective and figure out what is causing you feel that way. '
+                            response: 'I\'m glad that you want to learn more. <break time="0.25s"/> Essentially every time you want to talk to me, I\'ll ask you how you\'re feeling and try to make you feel better. '
+                            + 'For example, if you said you\'re feeling stressed, I could help you put things into perspective and figure out what\'s causing you to feel that way. '
                             + 'So let\'s give it a try, shall we?',
                         };
                     }
@@ -96,9 +96,9 @@ const SECTIONS = {
                 name: 'feeling',
                 //+ this.userData.name +
                 prompt() { 
-                    return 'Hey, '
+                    return 'Hey '
                         + (this.userData.name)
-                        + ' how are you feeling today?';
+                        + '<break time="0.25s"/> how are you feeling today?';
                 },
                 //prompt: 'Hey,' + this.context.name + ' how are you feeling today?',
                 type: SLOT_TYPES.OPEN_ENDED,
@@ -277,10 +277,10 @@ const SECTIONS = {
                         + ' the steadiness of your relaxed breathing. I will count to 4 as you breathe in and then I will count to 6 as you'
                         + ' slowly breathe out. Here we go  <break time="0.5s"/> .'
                         + ' Breathe in <break time="0.5s"/> 2 <break time="0.5s"/> 3 <break time="0.5s"/> 4.'
-                        + ' And now out <break time="0.5s"/> 2 <break time="0.5s"/> 3 <break time="0.5s"/> 4 <break time="0.5s"/> 5 <break time="0.5s"/> 6 .'
+                        + ' And now out <break time="0.5s"/> 2 <break time="0.5s"/> 3 <break time="0.5s"/> 4 <break time="0.25s"/> 5 <break time="0.25s"/> 6 .'
                         + ' Now let\'s do that one more time, this time really feel your lungs fill with the air. <break time="0.5s"/>'
                         + ' Breathe in <break time="0.5s"/> 2 <break time="0.5s"/> 3 <break time="0.5s"/> 4.'
-                        + ' And now slowly out <break time="0.5s"/> 2 <break time="0.5s"/> 3 <break time="0.5s"/> 4 <break time="0.5s"/> 5 <break time="0.5s"/> 6 .'
+                        + ' And now slowly out <break time="0.5s"/> 2 <break time="0.5s"/> 3 <break time="0.5s"/> 4 <break time="0.25s"/> 5 <break time="0.25s"/> 6 .'
                         + '<break time="1s"/> I hope this helped you find some calm among the stress you\'re experiencing. I know I already feel more relaxed from it. <break time="1s"/>',
                         };
                     }
@@ -626,132 +626,7 @@ const SECTIONS = {
         ],
         next: '' // TODO
     },
-    /*
-    tempExam: {
-        name: 'tempExam',
-        questions: [
-            {
-                name: 'exam',
-                prompt: 'Ah, Exams. Even though exams seem so important, your entire future doesn\'t depend on them. Don\'t give a test the power to define you!',
-                
-                type: SLOT_TYPES.OPEN_ENDED,
-                onResponse(input) {
-                    if (this.context.courseMaterials == "course materials") {
-                        return 'tempCourseMaterials'
-                    }
-                    else if (this.context.timeMan == "time managment") {
-                        return 'tempTimeManagement';
-                    }
-                    else if (this.context.sleep == "sleeping") {
-                        return 'tempSleep';
-                    }
-                    else {
-                        return 'ending';              
-
-                    }
-                }
-            },
-        ],
-        next: null
-    },
-    */
-   /*
-    tempCourseMaterials: {
-        name: 'tempCourseMaterials',
-        questions: [
-            {
-                name: 'course_materials',
-                prompt: 'I never heard anyone say college is easy. Try to attend office hours and finding a group of classmates to study with.',
-                //prompt: 'Not understanding content is a common issue, the courses are supposed to be challenging. '
-                //+ 'A few things that students find helpful when they don\'t understand material, are finding a tutor, '
-                //+ 'attending office hours, and finding a group of classmates to study with.',
-                type: SLOT_TYPES.OPEN_ENDED,
-                onResponse(input) {
-                    if (this.context.timeMan == "time managment") {
-                        return 'tempTimeManagement';
-                    }
-                    else if (this.context.sleep == "sleeping") {
-                        return 'tempSleep';
-                    }
-                    else {
-                        return 'ending';              
-                    }
-                }
-            },
-        ],
-        next: null
-    },
-    */
-   /*
-    tempTimeManagement: {
-        name: 'tempTimeManagement',
-        questions: [
-            {
-                name: 'time_management',
-                prompt: 'Don\'t you wish there was more time in a day? That probably won\'t happen. '
-                + ' Instead of putting things off until later and feeling guilty about it, try to start your work now. ',
-                type: SLOT_TYPES.OPEN_ENDED,
-                onResponse(input) {
-                    if (this.context.sleep == "sleeping") {
-                        return 'tempSleep';
-                    }
-                    else {
-                        //return 'check_in' 
-                        return 'ending';       
-                    }       
-                }
-            },
-        ],
-        next: null
-    },
-    */
-    /*
-    tempSleep: {
-        name: 'tempSleep',
-        questions: [
-            {
-                name: 'sleep',
-                prompt: 'I know that sleep is super important to me too. Before bed, try to relax and imagine you are in your happy place, whether that\'s a beach, a hotel, a spa, or even F M L.',
-                type: SLOT_TYPES.OPEN_ENDED,
-                onResponse(input) {
-                    //return 'check_in' 
-                    return 'ending'     ;              
-                }
-            },
-        ],
-        next: null
-    },
-    */
-
-    // Please return endMessage(this) as response instead
-    // ending: {
-    //     name: 'ending',
-    //     questions: [
-    //         {
-    //             name: 'first_top_trigger',
-    //             // TODO: Can this be customized to list *what the client likes about smoking*
-    //             prompt() { 
-                    
-    //             },
-    //             type: SLOT_TYPES.OPEN_ENDED
-    //         }
-    //     ],
-    //     next: '' // TODO
-    // },
-    // pos_ending: {
-    //     name: 'pos_ending',
-    //     questions: [
-    //         {
-    //             name: 'pos_ending',
-    //             // TODO: Can this be customized to list *what the client likes about smoking*
-    //             prompt() { 
-    //                 return '';
-    //             },
-    //             type: SLOT_TYPES.OPEN_ENDED
-    //         }
-    //     ],
-    //     next: '' // TODO
-    // },
+   
     __version__: '1',
 };
 
@@ -763,9 +638,9 @@ function endMessage(data) {
     if(this.context.courseMaterials != null) {response += this.context.courseMaterials + ' ';}
     if(this.context.timeMan != null) {response += this.context.timeMan + ' ';}
     if(this.context.sleep != null) {response += this.context.sleep + ' ';}
-    return 'It was a pleasure speaking with you today. Thanks for sharing your current struggles with '
-        + response
-        + '. Next time we can check in on how those are going for you. <break time="1s"/>'
+    return 'It was a pleasure speaking with you today. Thanks for sharing your current struggles with me. <break time="0.5s"/>'
+       // + response
+        + '. Next time we can check in on how those are going for you. <break time="0.75s"/>'
         + ' Please know that you can always talk to me, but the academic center is also a resource you can reach out to.';
 }
 
