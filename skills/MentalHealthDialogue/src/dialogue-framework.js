@@ -1,7 +1,7 @@
 const { CONFIG, SECTIONS } = require('./questionnaire');
 const { sentenceJoin } = require('./questionnaire/util');
 const Events = require('./events');
-//const {serializeError} = require('serialize-error');
+const {serializeError} = require('serialize-error');
 
 let witClient = null;
 if (CONFIG.witToken != null) {
