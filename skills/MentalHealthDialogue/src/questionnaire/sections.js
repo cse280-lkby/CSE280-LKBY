@@ -68,6 +68,39 @@ const SECTIONS = {
                         + (this.userData.name)
                         + '<break time="0.5s"/> because this is the first time we are meeting, would you like to see more information about how I work?';
                 },
+                type: SLOT_TYPES.OPEN_ENDED,
+                useWit: true,
+                onResponse(input, witResponse) {
+                    // on error, assumes no, skips the "moreInfo" stuff        
+                    const errorResponse = { response: 'We\'ll just jump right in. <break time="0.5s"/>', next: 'check_in' };
+                    let resp = '';
+                    if (witResponse != null) {
+                        console.log('Got response from Wit API!', JSON.stringify(witResponse));
+                        const {yes_no} = witResponse.entities;
+                        this.context.currentMood = input;
+                        //console.log('mood is ', input);
+                        
+                        if (yes_no == null) {
+                            return errorResponse;
+                        }
+
+                        const str = yes_no[0].value;
+                        if (str == "no") {
+                            resp += 'Okay, let\'s jump right in!';
+                            return {response: resp, next: 'tempNegative'};
+                        }
+                        else if (str == "yes") {
+                            resp += 'I\'m glad that you want to learn more. <break time="0.25s"/> Essentially every time you want to talk to me, I\'ll ask you how you\'re feeling and try to make you feel better. '
+                            + 'For example, if you said you\'re feeling stressed, I could help you put things into perspective and figure out what\'s causing you to feel that way. '
+                            + 'So let\'s give it a try, shall we?';
+                            return {response: resp, next: ''};
+                        }
+                        else {
+                        }
+
+                    }
+                }
+/*                
                  type: SLOT_TYPES.YES_NO,
                  useWit: false,
                  onResponse(input, witResponse) {
@@ -83,7 +116,8 @@ const SECTIONS = {
                             response: 'Okay, let\'s jump right in!',
                         };
                     }          
-                 }    
+                 } 
+*/                    
              }
          ],
          next: 'check_in'
@@ -269,6 +303,45 @@ const SECTIONS = {
             {
                 name: 'breathing_exercise',
                 prompt: 'Something I have found to be helpful when dealing with stress is focussing on my breathing. Would you like to do a simple breathing exercise?',
+                type: SLOT_TYPES.OPEN_ENDED,
+                useWit: true,
+                onResponse(input, witResponse) {
+                    // on error, assumes no, skips the "moreInfo" stuff        
+                    const errorResponse = { response: 'Maybe a different exercise would be better. <break time="0.5s"/>', next: 'gratitude_exercise' };
+                    let resp = '';
+                    if (witResponse != null) {
+                        console.log('Got response from Wit API!', JSON.stringify(witResponse));
+                        const {yes_no} = witResponse.entities;
+                        //this.context.currentMood = input;
+                        //console.log('mood is ', input);
+                        
+                        if (yes_no == null) {
+                            return errorResponse;
+                        }
+
+                        const str = yes_no[0].value;
+                        if (str == "no") {
+                            resp += 'That\'s just fine, we can try that out a different day! <break time="1s"/>';
+                            return {response: resp, next: 'gratitude_exercise'};
+                        }
+                        else if (str == "yes") {
+                            resp += 'Awesome! The purpose of this exercise is to focus on your body and calm your mind with'
+                            + ' the steadiness of your relaxed breathing. I will count to 4 as you breathe in and then I will count to 6 as you'
+                            + ' slowly breathe out. Here we go  <break time="0.5s"/> .'
+                            + ' Breathe in <break time="0.5s"/> 2 <break time="0.5s"/> 3 <break time="0.5s"/> 4.'
+                            + ' And now out <break time="0.5s"/> 2 <break time="0.5s"/> 3 <break time="0.5s"/> 4 <break time="0.25s"/> 5 <break time="0.25s"/> 6 .'
+                            + ' Now let\'s do that one more time, this time really feel your lungs fill with the air. <break time="0.5s"/>'
+                            + ' Breathe in <break time="0.5s"/> 2 <break time="0.5s"/> 3 <break time="0.5s"/> 4.'
+                            + ' And now slowly out <break time="0.5s"/> 2 <break time="0.5s"/> 3 <break time="0.5s"/> 4 <break time="0.25s"/> 5 <break time="0.25s"/> 6 .'
+                            + '<break time="1s"/> I hope this helped you find some calm among the stress you\'re experiencing. I know I already feel more relaxed from it. <break time="1s"/>';
+                            return {response: resp, next: 'check_in_post_breathing'};
+                        }
+                        else {
+                        }
+
+                    }
+                }
+/*
                 type: SLOT_TYPES.YES_NO,
                 onResponse(input) {
                     if(input==='yes'){
@@ -290,7 +363,8 @@ const SECTIONS = {
                             response: 'That\'s just fine, we can try that out a different day! <break time="1s"/>',
                         };
                     }
-                } 
+                }
+*/                 
             },
         ],
         next: 'check_in_post_breathing'
@@ -301,6 +375,46 @@ const SECTIONS = {
             {
                 name: 'check_in_post_breathing',
                 prompt: 'Would you like to continue this session with another activity?',
+
+                type: SLOT_TYPES.OPEN_ENDED,
+                useWit: true,
+                onResponse(input, witResponse) {
+                    //const errorResponse = { response: 'Okay, we can try more exercises the next time you check in with me. <break time="0.5s"/>', next: 'check_in' };
+                    let resp = '';
+                    if (witResponse != null) {
+                        console.log('Got response from Wit API!', JSON.stringify(witResponse));
+                        const {yes_no} = witResponse.entities;
+                        this.context.currentMood = input;
+                        //console.log('mood is ', input);
+                        
+
+                        // if an error, assumes no, goes to the ending
+                        if (yes_no == null) {
+                            return {
+                                response: endMessage(this),
+                                next: ''
+                            };
+                            //return errorResponse;
+                        }
+
+                        const str = yes_no[0].value;
+                        if (str == "no") {
+                            return {
+                                response: endMessage(this),
+                                next: ''
+                            };
+                        }
+                        else if (str == "yes") {
+                            resp += '';
+                            // if they want to try the activity, go to the actual activity
+                            return {response: resp, next: 'gratitude_exercise'};
+                        }
+                        else {
+                        }
+
+                    }
+                }
+/*
                 type: SLOT_TYPES.YES_NO,
                 onResponse(input) {
                     if(input==='yes'){
@@ -314,7 +428,8 @@ const SECTIONS = {
                             next: ''
                         };
                     }
-                } 
+                }
+*/                 
             },
         ],
         next: ''
@@ -325,6 +440,44 @@ const SECTIONS = {
             {
                 name: 'gratitude_exercise',
                 prompt: 'An activity I find that helps me deal with stress is thinking about the people or things I\'m grateful for. Would you like to try the gratitude exercise?',
+
+                type: SLOT_TYPES.OPEN_ENDED,
+                useWit: true,
+                onResponse(input, witResponse) {
+                    //const errorResponse = { response: 'Okay, we can try more exercises the next time you check in with me. <break time="0.5s"/>', next: 'check_in' };
+                    let resp = '';
+                    if (witResponse != null) {
+                        console.log('Got response from Wit API!', JSON.stringify(witResponse));
+                        const {yes_no} = witResponse.entities;
+                        this.context.currentMood = input;
+                        //console.log('mood is ', input);
+                        
+                        if (yes_no == null) {
+                            return {
+                                response: '',
+                                next: 'stretching_exercise'
+                            };
+                            //return errorResponse;
+                        }
+
+                        const str = yes_no[0].value;
+                        if (str == "no") {
+                            return {
+                                response: '',
+                                next: 'stretching_exercise'
+                            };
+                        }
+                        else if (str == "yes") {
+                            resp += '';
+                            // if they want to try the activity, go to the actual activity
+                            return {response: resp, next: 'gratitude_exercise_part_2'};
+                        }
+                        else {
+                        }
+
+                    }
+                }
+/*
                 type: SLOT_TYPES.YES_NO,
                 onResponse(input) {
                     if(input==='yes'){
@@ -334,13 +487,14 @@ const SECTIONS = {
 
                     else {
                         return 'stretching_exercise';
-                        /*
-                        return {
-                            response: 'That\'s alright, we\'ll give that a try another day! <break time="1s"/>',
-                        };
-                        */
+                        
+                        //return {
+                        //    response: 'That\'s alright, we\'ll give that a try another day! <break time="1s"/>',
+                        //};
+                        
                     }
-                } 
+                }
+*/                 
             },
         ],
         next: ''
@@ -539,6 +693,47 @@ const SECTIONS = {
             {
                 name: 'check_in_post_gratitude',
                 prompt: 'Would you like to continue this session with another activity?',
+
+
+                type: SLOT_TYPES.OPEN_ENDED,
+                useWit: true,
+                onResponse(input, witResponse) {
+                    //const errorResponse = { response: 'Okay, we can try more exercises the next time you check in with me. <break time="0.5s"/>', next: 'check_in' };
+                    let resp = '';
+                    if (witResponse != null) {
+                        console.log('Got response from Wit API!', JSON.stringify(witResponse));
+                        const {yes_no} = witResponse.entities;
+                        this.context.currentMood = input;
+                        //console.log('mood is ', input);
+                        
+
+                        // on error, assumes no and ends conversation
+                        if (yes_no == null) {
+                            return {
+                                response: endMessage(this),
+                                next: ''
+                            };
+                            //return errorResponse;
+                        }
+
+                        const str = yes_no[0].value;
+                        if (str == "no") {
+                            return {
+                                response: endMessage(this),
+                                next: ''
+                            };
+                        }
+                        else if (str == "yes") {
+                            resp += '';
+                            // if they want to try the activity, go to the actual activity
+                            return {response: resp, next: 'stretching_exercise'};
+                        }
+                        else {
+                        }
+
+                    }
+                }
+/*
                 type: SLOT_TYPES.YES_NO,
                 onResponse(input) {
                     if(input==='yes'){
@@ -552,7 +747,8 @@ const SECTIONS = {
                             next: ''
                         };
                     }
-                } 
+                }
+*/                 
             },
         ],
         next: ''
@@ -563,6 +759,52 @@ const SECTIONS = {
             {
                 name: 'stretching_exercise',
                 prompt: 'A great way to relax and loosen up is stretching. Would you like to do some quick guided stretching?',
+
+                type: SLOT_TYPES.OPEN_ENDED,
+                useWit: true,
+                onResponse(input, witResponse) {
+                    //const errorResponse = { response: 'Okay, we can try more exercises the next time you check in with me. <break time="0.5s"/>', next: 'check_in' };
+                    let resp = '';
+                    if (witResponse != null) {
+                        console.log('Got response from Wit API!', JSON.stringify(witResponse));
+                        const {yes_no} = witResponse.entities;
+                        this.context.currentMood = input;
+                        //console.log('mood is ', input);
+                        
+                        if (yes_no == null) {
+                            return {
+                                response: endMessage(this),
+                                next: ''
+                            };
+                            //return errorResponse;
+                        }
+
+                        const str = yes_no[0].value;
+                        if (str == "no") {
+                            return {
+                                response: 'Okay that\'s alright, we can stretch it all out another time! <break time="1s"/> '
+                                    + endMessage(this),
+                                next: ''
+                            };
+                        }
+                        else if (str == "yes") {
+                            resp += 'Splendid! <break time="0.5s"/> The purpose of this exercise is to clear your mind by focusing on your body. You can do this exercise just sitting in your chair or laying down if you\'d like. <break time="0.5s"/>'
+                            + ' Let\'s start by reaching your arms up. <break time="0.5s"/> Feel your muscles in your shoulder and along your ribs stretch. <break time="0.5s"/> 3 more seconds   <break time="3s"/> .'
+                            + ' Now let\'s lower your arms outward so that they are now horizontal. Really extend out to the side and take deep breaths. Keep this position for 5 more seconds. <break time="5s"/> .'
+                            + ' And now let\'s repeat that one more time. Go ahead and raise your arms back up so they are overhead again. Let\'s go for another 5 seconds. <break time="0.5s"/> 2 <break time="0.5s"/> 3 <break time="0.5s"/> 4 <break time="0.5s"/> 5 <break time="0.5s"/> .'
+                            + ' And now lower your arms one final time. Hold them out to the side for 5 more seconds.  <break time="0.5s"/> 2 <break time="0.5s"/> 3 <break time="0.5s"/> 4 <break time="0.5s"/> 5.'
+                            + ' <break time="1s"/> I hope this left you feeling a little more relaxed and loose. <break time="0.5s"/> I sure wish I could stretch like that. <break time="0.5s"/> '
+                            + ' Whenver you feel tense, use these simple stretches to loosen your body and clear your mind. <break time="0.5s"/>' + endMessage(this);
+
+                            return {response: resp, next: ''};
+                        }
+                        else {
+                        }
+
+                    }
+                }
+                
+/*
                 type: SLOT_TYPES.YES_NO,
                 onResponse(input) {
                     if(input==='yes'){
@@ -585,7 +827,8 @@ const SECTIONS = {
                         };
                         
                     }
-                } 
+                }
+*/                 
             },
         ],
         next: ''
