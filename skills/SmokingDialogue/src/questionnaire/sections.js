@@ -570,7 +570,7 @@ const SECTIONS = {
                                 + 'try, you will succeed.',
                             'I\'m proud of your effort. As long as you don\'t stop trying it\'s all good.'
                         ]);
-                        resp += "Lets get you set up with a new quit date." + HALF_SEC_BREAK;
+                        resp += " Lets get you set up with a new quit date." + HALF_SEC_BREAK;
                         return {
                             response: prefix + " " + resp,
                             next: 'set_quit_date',
@@ -883,7 +883,7 @@ const SECTIONS = {
                     let response = ''
                     const {no} = witResponse.entities;
                     if (no != null) {
-                        response += 'That\'s okay! Think about it and we\'ll come back to this another time.'
+                        response += 'That\'s okay! Think about it and we\'ll come back to this another time. ';
                     } else {
                         const {reasons_for_smoking, reasons_for_quitting} = witResponse.entities;
                         if (reasons_for_smoking == null && reasons_for_quitting == null) {
