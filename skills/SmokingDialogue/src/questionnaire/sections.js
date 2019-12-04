@@ -459,6 +459,13 @@ const SECTIONS = {
                     if (reasons_for_smoking != null) {
                         resp += sentenceJoin(dedupe(reasonsForSmoking.map(reason => {
                             switch (reason) {
+                                case 'withdrawal':
+                                    return randomChoice([
+                                        'Withdrawal symptoms can be hard to deal with. If you haven\'t tried it already, nicotine gum' +
+                                            ' can help calm your symptoms',
+                                        'Sleeping and letting your body and mind rest can do wonders for relieving your symptoms',
+                                        'Calling or texting a friend can help you feel better.'
+                                    ]);
                                 case 'addiction':
                                     return randomChoice([
                                         'Whenever cravings hit, take deep breaths, count to five, exhale, and say, '
