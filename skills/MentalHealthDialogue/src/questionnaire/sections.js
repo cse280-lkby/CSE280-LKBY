@@ -535,7 +535,7 @@ const SECTIONS = {
                                 return {response: resp};
                             }
                             else if (gratitudeStr == "no") {
-                                resp += 'I\'m sure there are great things happened to you but you just haven\'t noticed yet. Try to pay attention to even the smallest or simplest event, such as chat with a friend before class and have a good meal in a resturant.  <break time="1s"/>';
+                                resp += 'I\'m sure there are great things have happened to you but you just haven\'t noticed yet. Try to pay attention to even the smallest or simplest event, such as chat with a friend before class and have a good meal in a resturant.  <break time="1s"/>';
                                 this.context.no = "no";
                                 return {response: resp};
                             }
